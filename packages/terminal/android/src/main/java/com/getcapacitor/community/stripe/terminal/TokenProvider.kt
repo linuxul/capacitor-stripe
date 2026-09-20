@@ -12,18 +12,18 @@ import com.google.android.gms.common.util.BiConsumer
 import com.stripe.stripeterminal.external.callable.ConnectionTokenCallback
 import com.stripe.stripeterminal.external.callable.ConnectionTokenProvider
 import com.stripe.stripeterminal.external.models.ConnectionTokenException
+import java.util.Objects
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Objects
 
-class TokenProvider(
+public class TokenProvider(
     protected var contextSupplier: Supplier<Context>,
     protected val tokenProviderEndpoint: String,
     protected var notifyListenersFunction: BiConsumer<String, JSObject>
 ) : ConnectionTokenProvider {
     private var pendingCallback: ArrayList<ConnectionTokenCallback> = ArrayList()
 
-    fun setConnectionToken(call: PluginCall) {
+    public fun setConnectionToken(call: PluginCall) {
         val token = call.getString("token", "")
         if (pendingCallback.isNotEmpty()) {
             val pending = pendingCallback.removeAt(0)

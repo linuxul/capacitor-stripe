@@ -33,13 +33,15 @@ Users of Capacitor v7 should use version v7 of the Plugin.
 % npm install @capacitor-community/stripe-terminal@7
 ```
 
+This branch requires the forked Capacitor runtime (Kotlin/Swift only), iOS 17 and Android 13 (API 33).
+
 ### How to use Stripe Android currently package
 
-Capacitor Android 7's default settings is here:
+The forked Capacitor Android runtime's default settings is here:
 
 ```gradle
 ext {
-    minSdkVersion = 24
+    minSdkVersion = 33
     compileSdkVersion = 36
     targetSdkVersion = 36
 ```
@@ -54,8 +56,7 @@ To use the latest Stripe Android, you need to version these up. To use the lates
 
 ```diff
   ext {
--   minSdkVersion = 24
-+   minSdkVersion = 26
+    minSdkVersion = 33
     compileSdkVersion = 36
     targetSdkVersion = 36
     androidxActivityVersion = '1.11.0'

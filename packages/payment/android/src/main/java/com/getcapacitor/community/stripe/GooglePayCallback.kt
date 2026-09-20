@@ -1,4 +1,4 @@
-package com.getcapacitor.community.stripe;
+package com.getcapacitor.community.stripe
 
 import com.google.android.gms.wallet.PaymentData
 

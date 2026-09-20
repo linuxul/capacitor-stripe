@@ -6,21 +6,21 @@ import androidx.core.util.Supplier
 import com.getcapacitor.Logger
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 
-class MetaData(protected var contextSupplier: Supplier<Context>) {
-    var enableGooglePay: Boolean = false
-    var publishableKey: String? = null
-    var countryCode: String? = null
-    var displayName: String? = null
-    var stripeAccount: String? = null
-    var emailAddressRequired: Boolean? = null
-    var phoneNumberRequired: Boolean? = null
-    var billingAddressRequired: Boolean? = null
-    var billingAddressFormat: String? = null
-    var googlePayEnvironment: GooglePayEnvironment? = null
+public class MetaData(protected var contextSupplier: Supplier<Context>) {
+    public var enableGooglePay: Boolean = false
+    public var publishableKey: String? = null
+    public var countryCode: String? = null
+    public var displayName: String? = null
+    public var stripeAccount: String? = null
+    public var emailAddressRequired: Boolean? = null
+    public var phoneNumberRequired: Boolean? = null
+    public var billingAddressRequired: Boolean? = null
+    public var billingAddressFormat: String? = null
+    public var googlePayEnvironment: GooglePayEnvironment? = null
 
-    var existingPaymentMethodRequired: Boolean? = null
+    public var existingPaymentMethodRequired: Boolean? = null
 
-    var enableIdentifier: Boolean = false
+    public var enableIdentifier: Boolean = false
 
     init {
         try {

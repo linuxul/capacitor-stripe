@@ -1,9 +1,9 @@
-package com.getcapacitor.community.stripe.paymentsheet;
+package com.getcapacitor.community.stripe.paymentsheet
 
-enum class PaymentSheetEvents(val webEventName: String) {
+public enum class PaymentSheetEvents(public val webEventName: String) {
     Loaded("paymentSheetLoaded"),
     FailedToLoad("paymentSheetFailedToLoad"),
     Completed("paymentSheetCompleted"),
     Canceled("paymentSheetCanceled"),
-    Failed("paymentSheetFailed"),
+    Failed("paymentSheetFailed")
 }

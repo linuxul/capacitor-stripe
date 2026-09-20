@@ -11,7 +11,7 @@ import com.getcapacitor.community.stripe.identity.models.EventNotifier
 import com.getcapacitor.community.stripe.identity.models.Executor
 import com.stripe.android.identity.IdentityVerificationSheet
 
-class StripeIdentity(
+public class StripeIdentity(
     contextSupplier: Supplier<Context>,
     activitySupplier: Supplier<Activity>,
     eventNotifier: EventNotifier,
@@ -23,7 +23,7 @@ class StripeIdentity(
     pluginLogTag,
     "StripeIdentityExecutor"
 ) {
-    var verificationSheet: IdentityVerificationSheet? = null
+    public var verificationSheet: IdentityVerificationSheet? = null
     private val emptyObject = JSObject()
 
     private var verificationId: String? = null
@@ -33,11 +33,11 @@ class StripeIdentity(
         this.contextSupplier = contextSupplier
     }
 
-    fun initialize(call: PluginCall) {
+    public fun initialize(call: PluginCall) {
         call.resolve()
     }
 
-    fun create(call: PluginCall) {
+    public fun create(call: PluginCall) {
         verificationId = call.getString("verificationId", null)
         ephemeralKeySecret = call.getString("ephemeralKeySecret", null)
 
@@ -56,7 +56,7 @@ class StripeIdentity(
         call.resolve()
     }
 
-    fun present(call: PluginCall) {
+    public fun present(call: PluginCall) {
         try {
             verificationSheet!!.present(
                 verificationId!!,
@@ -65,12 +65,13 @@ class StripeIdentity(
             Logger.info("Presented Identity Verification Sheet")
             call.resolve()
         } catch (ex: Exception) {
-            call.reject(ex.localizedMessage, ex)
+            call.reject(ex.localizedMessage, ex = ex)
         }
     }
 
-    fun onVerificationCompleted() {
-        notifyListeners(IdentityVerificationSheetEvent.VerificationResult.webEventName,
+    public fun onVerificationCompleted() {
+        notifyListeners(
+            IdentityVerificationSheetEvent.VerificationResult.webEventName,
             JSObject().put(
                 "result",
                 IdentityVerificationSheetEvent.Completed.webEventName
@@ -79,8 +80,9 @@ class StripeIdentity(
         )
     }
 
-    fun onVerificationCancelled() {
-        notifyListeners(IdentityVerificationSheetEvent.VerificationResult.webEventName,
+    public fun onVerificationCancelled() {
+        notifyListeners(
+            IdentityVerificationSheetEvent.VerificationResult.webEventName,
             JSObject().put(
                 "result",
                 IdentityVerificationSheetEvent.Canceled.webEventName
@@ -89,8 +91,9 @@ class StripeIdentity(
         )
     }
 
-    fun onVerificationFailed(errorMessage: String?) {
-        notifyListeners(IdentityVerificationSheetEvent.VerificationResult.webEventName,
+    public fun onVerificationFailed(errorMessage: String?) {
+        notifyListeners(
+            IdentityVerificationSheetEvent.VerificationResult.webEventName,
             JSObject()
                 .put(
                     "result",

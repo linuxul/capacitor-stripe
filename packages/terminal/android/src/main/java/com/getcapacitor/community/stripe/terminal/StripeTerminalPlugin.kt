@@ -1,9 +1,7 @@
 package com.getcapacitor.community.stripe.terminal
 
 import android.Manifest
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
@@ -15,21 +13,22 @@ import com.getcapacitor.annotation.PermissionCallback
 import com.getcapacitor.community.stripe.terminal.models.EventNotifier
 import com.stripe.stripeterminal.external.models.TerminalException
 
-@RequiresApi(api = Build.VERSION_CODES.S)
 @CapacitorPlugin(
     name = "StripeTerminal",
-    permissions = [Permission(
-        alias = "location",
-        strings = [Manifest.permission.ACCESS_FINE_LOCATION]
-    ), Permission(
-        alias = "bluetooth_old",
-        strings = [Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN]
-    ), Permission(
-        alias = "bluetooth",
-        strings = [Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE]
-    )]
+    permissions = [
+        Permission(
+            alias = "location",
+            strings = [Manifest.permission.ACCESS_FINE_LOCATION]
+        ), Permission(
+            alias = "bluetooth_old",
+            strings = [Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN]
+        ), Permission(
+            alias = "bluetooth",
+            strings = [Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE]
+        )
+    ]
 )
-class StripeTerminalPlugin : Plugin() {
+public class StripeTerminalPlugin : Plugin() {
     private val implementation = StripeTerminal(
         { this.context },
         { this.activity },
@@ -41,17 +40,17 @@ class StripeTerminalPlugin : Plugin() {
 
     @PluginMethod
     @Throws(TerminalException::class)
-    fun initialize(call: PluginCall) {
-        this._initialize(call)
+    public fun initialize(call: PluginCall) {
+        this.initializeWhenPermitted(call)
     }
 
     @PluginMethod
-    fun setConnectionToken(call: PluginCall) {
+    public fun setConnectionToken(call: PluginCall) {
         implementation.setConnectionToken(call)
     }
 
     @PluginMethod
-    fun setSimulatorConfiguration(call: PluginCall) {
+    public fun setSimulatorConfiguration(call: PluginCall) {
         implementation.setSimulatorConfiguration(call)
     }
 
@@ -59,23 +58,9 @@ class StripeTerminalPlugin : Plugin() {
     @Throws(TerminalException::class)
     private fun locationPermsCallback(call: PluginCall) {
         if (getPermissionState("location") == PermissionState.GRANTED) {
-            this._initialize(call)
+            this.initializeWhenPermitted(call)
         } else {
             requestPermissionForAlias("location", call, "locationPermsCallback")
-        }
-    }
-
-    @PermissionCallback
-    @Throws(TerminalException::class)
-    private fun bluetoothOldPermsCallback(call: PluginCall) {
-        if (getPermissionState("bluetooth_old") == PermissionState.GRANTED) {
-            if (call.methodName == "discoverReaders") {
-                this.discoverReaders(call)
-            } else {
-                this.connectReader(call)
-            }
-        } else {
-            requestPermissionForAlias("bluetooth_old", call, "bluetoothOldPermsCallback")
         }
     }
 
@@ -94,7 +79,7 @@ class StripeTerminalPlugin : Plugin() {
     }
 
     @Throws(TerminalException::class)
-    private fun _initialize(call: PluginCall) {
+    private fun initializeWhenPermitted(call: PluginCall) {
         if (getPermissionState("location") != PermissionState.GRANTED) {
             requestPermissionForAlias("location", call, "locationPermsCallback")
         } else {
@@ -104,14 +89,12 @@ class StripeTerminalPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun discoverReaders(call: PluginCall) {
+    public fun discoverReaders(call: PluginCall) {
         if (call.getString("type") == TerminalConnectTypes.Bluetooth.webEventName || call.getString(
                 "type"
             ) == TerminalConnectTypes.Simulated.webEventName
         ) {
-            if (Build.VERSION.SDK_INT <= 30 && getPermissionState("bluetooth_old") != PermissionState.GRANTED) {
-                requestPermissionForAlias("bluetooth_old", call, "bluetoothOldPermsCallback")
-            } else if (Build.VERSION.SDK_INT > 30 && getPermissionState("bluetooth") != PermissionState.GRANTED) {
+            if (getPermissionState("bluetooth") != PermissionState.GRANTED) {
                 requestPermissionForAlias("bluetooth", call, "bluetoothPermsCallback")
             } else {
                 implementation.onDiscoverReaders(call)
@@ -122,21 +105,19 @@ class StripeTerminalPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun cancelDiscoverReaders(call: PluginCall) {
+    public fun cancelDiscoverReaders(call: PluginCall) {
         implementation.cancelDiscoverReaders(call)
     }
 
     @PluginMethod
-    fun connectReader(call: PluginCall) {
+    public fun connectReader(call: PluginCall) {
         if (call.getString("type") == TerminalConnectTypes.Bluetooth.webEventName) {
             Log.d(
                 "Capacitor:permission bluetooth_old",
                 getPermissionState("bluetooth_old").toString()
             )
             Log.d("Capacitor:permission bluetooth", getPermissionState("bluetooth").toString())
-            if (Build.VERSION.SDK_INT <= 30 && getPermissionState("bluetooth_old") != PermissionState.GRANTED) {
-                requestPermissionForAlias("bluetooth_old", call, "bluetoothOldPermsCallback")
-            } else if (Build.VERSION.SDK_INT > 30 && getPermissionState("bluetooth") != PermissionState.GRANTED) {
+            if (getPermissionState("bluetooth") != PermissionState.GRANTED) {
                 requestPermissionForAlias("bluetooth", call, "bluetoothPermsCallback")
             } else {
                 implementation.connectReader(call)
@@ -147,67 +128,67 @@ class StripeTerminalPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun getConnectedReader(call: PluginCall) {
+    public fun getConnectedReader(call: PluginCall) {
         implementation.getConnectedReader(call)
     }
 
     @PluginMethod
-    fun disconnectReader(call: PluginCall) {
+    public fun disconnectReader(call: PluginCall) {
         implementation.disconnectReader(call)
     }
 
     @PluginMethod
-    fun collectPaymentMethod(call: PluginCall) {
+    public fun collectPaymentMethod(call: PluginCall) {
         implementation.collectPaymentMethod(call)
     }
 
     @PluginMethod
-    fun cancelCollectPaymentMethod(call: PluginCall) {
+    public fun cancelCollectPaymentMethod(call: PluginCall) {
         implementation.cancelCollectPaymentMethod(call)
     }
 
     @PluginMethod
-    fun confirmPaymentIntent(call: PluginCall) {
+    public fun confirmPaymentIntent(call: PluginCall) {
         implementation.confirmPaymentIntent(call)
     }
 
     @PluginMethod
-    fun installAvailableUpdate(call: PluginCall) {
+    public fun installAvailableUpdate(call: PluginCall) {
         implementation.installAvailableUpdate(call)
     }
 
     @PluginMethod
-    fun cancelInstallUpdate(call: PluginCall) {
+    public fun cancelInstallUpdate(call: PluginCall) {
         implementation.cancelInstallUpdate(call)
     }
 
     @PluginMethod
-    fun setReaderDisplay(call: PluginCall) {
+    public fun setReaderDisplay(call: PluginCall) {
         implementation.setReaderDisplay(call)
     }
 
     @PluginMethod
-    fun clearReaderDisplay(call: PluginCall) {
+    public fun clearReaderDisplay(call: PluginCall) {
         implementation.clearReaderDisplay(call)
     }
 
     @PluginMethod
-    fun rebootReader(call: PluginCall) {
+    public fun rebootReader(call: PluginCall) {
         implementation.rebootReader(call)
     }
 
     @PluginMethod
-    fun cancelReaderReconnection(call: PluginCall) {
+    public fun cancelReaderReconnection(call: PluginCall) {
         implementation.cancelReaderReconnection(call)
     }
 
     @PluginMethod
-    fun setTapToPayUxConfiguration(call: PluginCall) {
+    public fun setTapToPayUxConfiguration(call: PluginCall) {
         implementation.setTapToPayUxConfiguration(call)
     }
 
     @PluginMethod
-    fun isTapToPayAccountLinked(call: PluginCall) {
+    public fun isTapToPayAccountLinked(call: PluginCall) {
         call.unimplemented("isTapToPayAccountLinked is only supported on iOS.")
     }
 }

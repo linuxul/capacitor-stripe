@@ -2,26 +2,27 @@ import Foundation
 import Capacitor
 import StripePaymentSheet
 import StripeApplePay
+import UIKit
 
 @objc(StripePlugin)
 public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StripePlugin"
     public let jsName = "Stripe"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "handleURLCallback", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "createPaymentSheet", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "presentPaymentSheet", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "createPaymentFlow", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "presentPaymentFlow", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "confirmPaymentFlow", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "isApplePayAvailable", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "createApplePay", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "presentApplePay", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "updateApplePaySheet", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "isGooglePayAvailable", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "createGooglePay", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "presentGooglePay", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "initialize", returnType: .promise),
+        CAPPluginMethod(name: "handleURLCallback", returnType: .promise),
+        CAPPluginMethod(name: "createPaymentSheet", returnType: .promise),
+        CAPPluginMethod(name: "presentPaymentSheet", returnType: .promise),
+        CAPPluginMethod(name: "createPaymentFlow", returnType: .promise),
+        CAPPluginMethod(name: "presentPaymentFlow", returnType: .promise),
+        CAPPluginMethod(name: "confirmPaymentFlow", returnType: .promise),
+        CAPPluginMethod(name: "isApplePayAvailable", returnType: .promise),
+        CAPPluginMethod(name: "createApplePay", returnType: .promise),
+        CAPPluginMethod(name: "presentApplePay", returnType: .promise),
+        CAPPluginMethod(name: "updateApplePaySheet", returnType: .promise),
+        CAPPluginMethod(name: "isGooglePayAvailable", returnType: .promise),
+        CAPPluginMethod(name: "createGooglePay", returnType: .promise),
+        CAPPluginMethod(name: "presentGooglePay", returnType: .promise)
     ]
     private let paymentSheetExecutor = PaymentSheetExecutor()
     private let paymentFlowExecutor = PaymentFlowExecutor()

@@ -14,10 +14,9 @@ import com.stripe.android.paymentsheet.PaymentSheet.PaymentMethodLayout
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.model.PaymentOption
 
-internal fun shouldIgnorePaymentOptionResult(hasPaymentOption: Boolean, didCancel: Boolean): Boolean =
-    !hasPaymentOption && !didCancel
+internal fun shouldIgnorePaymentOptionResult(hasPaymentOption: Boolean, didCancel: Boolean): Boolean = !hasPaymentOption && !didCancel
 
-class PaymentFlowExecutor(
+public class PaymentFlowExecutor(
     contextSupplier: Supplier<Context>,
     activitySupplier: Supplier<Activity>,
     notifyListenersFunction: EventNotifier,
@@ -29,7 +28,7 @@ class PaymentFlowExecutor(
     pluginLogTag,
     "PaymentFlowExecutor"
 ) {
-    var flowController: PaymentSheet.FlowController? = null
+    public var flowController: PaymentSheet.FlowController? = null
     private var configurationBuilder: PaymentSheet.Configuration.Builder? = null
     private val emptyObject = JSObject()
 
@@ -37,7 +36,7 @@ class PaymentFlowExecutor(
         this.contextSupplier = contextSupplier
     }
 
-    fun createPaymentFlow(call: PluginCall) {
+    public fun createPaymentFlow(call: PluginCall) {
         val paymentIntentClientSecret = call.getString("paymentIntentClientSecret", null)
         val setupIntentClientSecret = call.getString("setupIntentClientSecret", null)
         val customerEphemeralKeySecret = call.getString("customerEphemeralKeySecret", null)
@@ -45,9 +44,9 @@ class PaymentFlowExecutor(
 
         val paymentMethodLayout: PaymentMethodLayout = when (call.getString("paymentMethodLayout", "automatic")) {
             "horizontal" -> PaymentMethodLayout.Horizontal
-            "vertical"   -> PaymentMethodLayout.Vertical
-            "automatic"  -> PaymentMethodLayout.Automatic
-            else         -> PaymentMethodLayout.Automatic
+            "vertical" -> PaymentMethodLayout.Vertical
+            "automatic" -> PaymentMethodLayout.Automatic
+            else -> PaymentMethodLayout.Automatic
         }
 
         if (paymentIntentClientSecret == null && setupIntentClientSecret == null) {
@@ -80,12 +79,16 @@ class PaymentFlowExecutor(
 
         val enableGooglePay = call.getBoolean("enableGooglePay", false)
 
-        val customer: PaymentSheet.CustomerConfiguration? = if (customerId != null
-        ) PaymentSheet.CustomerConfiguration(customerId, customerEphemeralKeySecret!!)
-        else null
+        val customer: PaymentSheet.CustomerConfiguration? = if (customerId != null) {
+            PaymentSheet.CustomerConfiguration(customerId, customerEphemeralKeySecret!!)
+        } else {
+            null
+        }
 
-        val defaultBillingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToBillingDetails(call.getObject("defaultBillingDetails", null))
-        val shippingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToShippingDetails(call.getObject("shippingDetails", null));
+        val defaultBillingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToBillingDetails(
+            call.getObject("defaultBillingDetails", null)
+        )
+        val shippingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToShippingDetails(call.getObject("shippingDetails", null))
         val billingDetailsCollectionConfiguration = PaymentSheetHelper().fromJSObjectToBillingCollectionConfig(
             call.getObject("billingDetailsCollectionConfiguration", null)
         )
@@ -107,11 +110,13 @@ class PaymentFlowExecutor(
                 environment = PaymentSheet.GooglePayConfiguration.Environment.Test
             }
 
-            configurationBuilder!!.googlePay(PaymentSheet.GooglePayConfiguration(
-                environment,
-                call.getString("countryCode", "US")!!,
-                call.getString("currencyCode", null)
-            ))
+            configurationBuilder!!.googlePay(
+                PaymentSheet.GooglePayConfiguration(
+                    environment,
+                    call.getString("countryCode", "US")!!,
+                    call.getString("currencyCode", null)
+                )
+            )
         }
 
         if (setupIntentClientSecret != null) {
@@ -155,29 +160,24 @@ class PaymentFlowExecutor(
         }
     }
 
-    fun presentPaymentFlow(call: PluginCall) {
+    public fun presentPaymentFlow(call: PluginCall) {
         try {
             notifyListenersFunction.accept(PaymentFlowEvents.Opened.webEventName, emptyObject)
             flowController!!.presentPaymentOptions()
         } catch (ex: Exception) {
-            call.reject(ex.localizedMessage, ex)
+            call.reject(ex.localizedMessage, ex = ex)
         }
     }
 
-    fun confirmPaymentFlow(call: PluginCall) {
+    public fun confirmPaymentFlow(call: PluginCall) {
         try {
             flowController!!.confirm()
         } catch (ex: Exception) {
-            call.reject(ex.localizedMessage, ex)
+            call.reject(ex.localizedMessage, ex = ex)
         }
     }
 
-    fun onPaymentOption(
-        bridge: Bridge,
-        callbackId: String?,
-        paymentOption: PaymentOption?,
-        didCancel: Boolean
-    ) {
+    public fun onPaymentOption(bridge: Bridge, callbackId: String?, paymentOption: PaymentOption?, didCancel: Boolean) {
         if (shouldIgnorePaymentOptionResult(paymentOption != null, didCancel)) return
 
         val call = bridge.getSavedCall(callbackId)
@@ -192,11 +192,7 @@ class PaymentFlowExecutor(
         }
     }
 
-    fun onPaymentFlowResult(
-        bridge: Bridge,
-        callbackId: String?,
-        paymentSheetResult: PaymentSheetResult
-    ) {
+    public fun onPaymentFlowResult(bridge: Bridge, callbackId: String?, paymentSheetResult: PaymentSheetResult) {
         val call = bridge.getSavedCall(callbackId)
 
         if (paymentSheetResult is PaymentSheetResult.Canceled) {

@@ -39,12 +39,11 @@ Add permissions to your `android/app/src/main/AndroidManifest.xml` file:
 + <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
-And update `minSdkVersion` to 26 in your `android/variables.gradle` file:
+This plugin requires the forked Capacitor runtime, iOS 17 and Android 13 (API 33), so `minSdkVersion` in your `android/variables.gradle` file is already high enough for the Terminal SDK:
 
-```diff
+```gradle
 ext {
--   minSdkVersion = 24
-+   minSdkVersion = 26
+    minSdkVersion = 33
 ```
 
 If you are developing apps for Stripe Android devices (e.g. Stripe Reader S700), follow the Stripe's documentation for the client-side setup.

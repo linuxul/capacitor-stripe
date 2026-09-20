@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import StripeIdentity
+import UIKit
 
 @objc public class StripeIdentity: NSObject {
     weak var plugin: StripeIdentityPlugin?

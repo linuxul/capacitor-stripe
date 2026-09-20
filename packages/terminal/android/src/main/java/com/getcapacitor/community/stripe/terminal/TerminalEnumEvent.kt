@@ -1,6 +1,6 @@
-package com.getcapacitor.community.stripe.terminal;
+package com.getcapacitor.community.stripe.terminal
 
-enum class TerminalEnumEvent(val webEventName: String) {
+public enum class TerminalEnumEvent(public val webEventName: String) {
     Loaded("terminalLoaded"),
     DiscoveringReaders("terminalDiscoveringReaders"),
     DiscoveredReaders("terminalDiscoveredReaders"),
@@ -25,5 +25,5 @@ enum class TerminalEnumEvent(val webEventName: String) {
     PaymentStatusChange("terminalPaymentStatusChange"),
     ReaderReconnectStarted("terminalReaderReconnectStarted"),
     ReaderReconnectSucceeded("terminalReaderReconnectSucceeded"),
-    ReaderReconnectFailed("terminalReaderReconnectFailed"),
+    ReaderReconnectFailed("terminalReaderReconnectFailed")
 }

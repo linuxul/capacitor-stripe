@@ -13,7 +13,7 @@ import com.stripe.android.identity.IdentityVerificationSheet.Companion.create
 import com.stripe.android.identity.IdentityVerificationSheet.VerificationFlowResult
 
 @CapacitorPlugin(name = "StripeIdentity")
-class StripeIdentityPlugin : Plugin() {
+public class StripeIdentityPlugin : Plugin() {
     private val implementation = StripeIdentity(
         { this.context },
         { this.activity },
@@ -49,24 +49,24 @@ class StripeIdentityPlugin : Plugin() {
             } else if (verificationFlowResult is VerificationFlowResult.Failed) {
                 // If the flow fails, you should display the localized error
                 // message to your user using throwable.getLocalizedMessage()
-                val errorMessage = verificationFlowResult.throwable.localizedMessage;
+                val errorMessage = verificationFlowResult.throwable.localizedMessage
                 implementation.onVerificationFailed(errorMessage)
             }
         }
     }
 
     @PluginMethod
-    fun initialize(call: PluginCall) {
+    public fun initialize(call: PluginCall) {
         implementation.initialize(call)
     }
 
     @PluginMethod
-    fun create(call: PluginCall) {
+    public fun create(call: PluginCall) {
         implementation.create(call)
     }
 
     @PluginMethod
-    fun present(call: PluginCall) {
+    public fun present(call: PluginCall) {
         implementation.present(call)
     }
 }

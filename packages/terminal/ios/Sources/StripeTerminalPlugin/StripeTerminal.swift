@@ -292,11 +292,6 @@ public class StripeTerminal: NSObject, DiscoveryDelegate, TerminalDelegate, Read
     }
 
     public func isTapToPayAccountLinked(_ call: CAPPluginCall) {
-        guard #available(iOS 16.4, *) else {
-            call.unavailable("isTapToPayAccountLinked requires iOS 16.4 or later.")
-            return
-        }
-
         if self.isInitialize == false {
             call.reject("Stripe Terminal is not initialized. Call initialize() first.")
             return

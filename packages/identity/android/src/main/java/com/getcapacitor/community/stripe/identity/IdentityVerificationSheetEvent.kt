@@ -1,11 +1,10 @@
-package com.getcapacitor.community.stripe.identity;
+package com.getcapacitor.community.stripe.identity
 
-
-enum class IdentityVerificationSheetEvent(val webEventName: String) {
+public enum class IdentityVerificationSheetEvent(public val webEventName: String) {
     Loaded("identityVerificationSheetLoaded"),
     FailedToLoad("identityVerificationSheetFailedToLoad"),
     Completed("identityVerificationSheetCompleted"),
     Canceled("identityVerificationSheetCanceled"),
     Failed("identityVerificationSheetFailed"),
-    VerificationResult("identityVerificationResult"),
+    VerificationResult("identityVerificationResult")
 }

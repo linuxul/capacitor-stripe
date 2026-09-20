@@ -110,10 +110,7 @@ extension ApplePayExecutor {
         let name = contact.name
         let address = contact.postalAddress
         
-        var nameFormatted = ""
-        if #available(iOS 15.0, *) {
-            nameFormatted = (contact.name?.nameSuffix as? String ?? "")
-        }
+        let nameFormatted = (contact.name?.nameSuffix as? String ?? "")
         
         return [
              "givenName": name?.givenName ?? "",

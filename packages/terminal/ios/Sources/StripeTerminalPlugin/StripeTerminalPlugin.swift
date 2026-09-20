@@ -8,25 +8,25 @@ public class StripeTerminalPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StripeTerminalPlugin"
     public let jsName = "StripeTerminal"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setConnectionToken", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "discoverReaders", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "cancelDiscoverReaders", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "connectReader", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getConnectedReader", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "disconnectReader", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "collectPaymentMethod", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "cancelCollectPaymentMethod", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "confirmPaymentIntent", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setSimulatorConfiguration", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "installAvailableUpdate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "cancelInstallUpdate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setReaderDisplay", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "clearReaderDisplay", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "rebootReader", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "cancelReaderReconnection", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setTapToPayUxConfiguration", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "isTapToPayAccountLinked", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "initialize", returnType: .promise),
+        CAPPluginMethod(name: "setConnectionToken", returnType: .promise),
+        CAPPluginMethod(name: "discoverReaders", returnType: .promise),
+        CAPPluginMethod(name: "cancelDiscoverReaders", returnType: .promise),
+        CAPPluginMethod(name: "connectReader", returnType: .promise),
+        CAPPluginMethod(name: "getConnectedReader", returnType: .promise),
+        CAPPluginMethod(name: "disconnectReader", returnType: .promise),
+        CAPPluginMethod(name: "collectPaymentMethod", returnType: .promise),
+        CAPPluginMethod(name: "cancelCollectPaymentMethod", returnType: .promise),
+        CAPPluginMethod(name: "confirmPaymentIntent", returnType: .promise),
+        CAPPluginMethod(name: "setSimulatorConfiguration", returnType: .promise),
+        CAPPluginMethod(name: "installAvailableUpdate", returnType: .promise),
+        CAPPluginMethod(name: "cancelInstallUpdate", returnType: .promise),
+        CAPPluginMethod(name: "setReaderDisplay", returnType: .promise),
+        CAPPluginMethod(name: "clearReaderDisplay", returnType: .promise),
+        CAPPluginMethod(name: "rebootReader", returnType: .promise),
+        CAPPluginMethod(name: "cancelReaderReconnection", returnType: .promise),
+        CAPPluginMethod(name: "setTapToPayUxConfiguration", returnType: .promise),
+        CAPPluginMethod(name: "isTapToPayAccountLinked", returnType: .promise)
     ]
     private let implementation = StripeTerminal()
 

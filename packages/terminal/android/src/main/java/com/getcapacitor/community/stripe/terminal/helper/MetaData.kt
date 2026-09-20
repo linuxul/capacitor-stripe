@@ -5,8 +5,8 @@ import android.content.pm.PackageManager
 import androidx.core.util.Supplier
 import com.getcapacitor.Logger
 
-class MetaData(protected var contextSupplier: Supplier<Context>) {
-    var enableIdentifier: Boolean = false
+public class MetaData(protected var contextSupplier: Supplier<Context>) {
+    public var enableIdentifier: Boolean = false
 
     init {
         try {

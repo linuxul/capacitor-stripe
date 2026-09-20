@@ -22,6 +22,7 @@ import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.Terminal.Companion.init
 import com.stripe.stripeterminal.Terminal.Companion.isInitialized
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.callable.AppsOnDevicesListener
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.DiscoveryListener
@@ -31,7 +32,6 @@ import com.stripe.stripeterminal.external.callable.PaymentIntentCallback
 import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.TapToPayReaderListener
 import com.stripe.stripeterminal.external.callable.TerminalListener
-import com.stripe.stripeterminal.external.callable.AppsOnDevicesListener
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.Cart
@@ -54,12 +54,12 @@ import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.log.LogLevel
+import java.util.Objects
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Objects
 
-//import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener;
-class StripeTerminal(
+// import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener;
+public class StripeTerminal(
     contextSupplier: Supplier<Context>,
     activitySupplier: Supplier<Activity>,
     eventNotifier: EventNotifier,
@@ -91,7 +91,7 @@ class StripeTerminal(
     private val terminalMappers = TerminalMappers()
 
     @Throws(TerminalException::class)
-    fun initialize(call: PluginCall) {
+    public fun initialize(call: PluginCall) {
         this.isTest = call.getBoolean("isTest", true)
 
         val bluetooth = BluetoothAdapter.getDefaultAdapter()
@@ -147,11 +147,11 @@ class StripeTerminal(
         Terminal.getInstance()
     }
 
-    fun setConnectionToken(call: PluginCall) {
+    public fun setConnectionToken(call: PluginCall) {
         tokenProvider!!.setConnectionToken(call)
     }
 
-    fun setSimulatorConfiguration(call: PluginCall) {
+    public fun setSimulatorConfiguration(call: PluginCall) {
         try {
             val updateString = call.getString("update", "UPDATE_AVAILABLE")
             val simulateReaderUpdate = SimulateReaderUpdate.entries.find { it.name == updateString }
@@ -164,14 +164,13 @@ class StripeTerminal(
                 false
             )
 
-
             call.resolve()
         } catch (ex: Exception) {
             call.reject(ex.message)
         }
     }
 
-    fun onDiscoverReaders(call: PluginCall) {
+    public fun onDiscoverReaders(call: PluginCall) {
         if (ActivityCompat.checkSelfPermission(
                 contextSupplier.get(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -254,7 +253,7 @@ class StripeTerminal(
             )
     }
 
-    fun connectReader(call: PluginCall) {
+    public fun connectReader(call: PluginCall) {
         if (this.terminalConnectType == TerminalConnectTypes.TapToPay) {
             this.connectTapToPayReader(call)
         } else if (this.terminalConnectType == TerminalConnectTypes.Internet) {
@@ -270,16 +269,16 @@ class StripeTerminal(
         }
     }
 
-    fun getConnectedReader(call: PluginCall) {
+    public fun getConnectedReader(call: PluginCall) {
         val reader: Reader? = Terminal.getInstance().connectedReader
         if (reader == null) {
-            call.resolve(JSObject().put("reader", JSObject.NULL))
+            call.resolve(JSObject().put("reader", JSONObject.NULL))
         } else {
             call.resolve(JSObject().put("reader", convertReaderInterface(reader)))
         }
     }
 
-    fun disconnectReader(call: PluginCall) {
+    public fun disconnectReader(call: PluginCall) {
         if (Terminal.getInstance().connectedReader == null) {
             call.resolve()
             return
@@ -297,14 +296,15 @@ class StripeTerminal(
                     }
 
                     override fun onFailure(e: TerminalException) {
-                        call.reject(e.localizedMessage, e)
+                        call.reject(e.localizedMessage, ex = e)
                     }
                 }
             )
     }
 
     private fun connectTapToPayReader(call: PluginCall) {
-        val reader = call.getObject("reader")
+        // A call without "reader" has always failed here with a NullPointerException.
+        val reader = call.getObject("reader")!!
         val serialNumber = reader.getString("serialNumber")
         this.locationId = call.getString("locationId", this.locationId)
 
@@ -328,7 +328,7 @@ class StripeTerminal(
         Terminal.getInstance().connectReader(foundReader, config, this.readerCallback(call))
     }
 
-    var tapToPayReaderListener: TapToPayReaderListener = object : TapToPayReaderListener {
+    public var tapToPayReaderListener: TapToPayReaderListener = object : TapToPayReaderListener {
         override fun onReaderReconnectFailed(reader: Reader) {
             notifyListeners(
                 TerminalEnumEvent.ReaderReconnectFailed.webEventName,
@@ -336,11 +336,7 @@ class StripeTerminal(
             )
         }
 
-        override fun onReaderReconnectStarted(
-            reader: Reader,
-            cancelReconnect: Cancelable,
-            reason: DisconnectReason
-        ) {
+        override fun onReaderReconnectStarted(reader: Reader, cancelReconnect: Cancelable, reason: DisconnectReason) {
             cancelReaderConnectionCancellable = cancelReconnect
             notifyListeners(
                 TerminalEnumEvent.ReaderReconnectStarted.webEventName,
@@ -364,7 +360,7 @@ class StripeTerminal(
         }
     }
 
-    var internetReaderListener: InternetReaderListener = object : InternetReaderListener {
+    public var internetReaderListener: InternetReaderListener = object : InternetReaderListener {
         override fun onDisconnect(reason: DisconnectReason) {
             notifyListeners(
                 TerminalEnumEvent.DisconnectedReader.webEventName,
@@ -400,7 +396,8 @@ class StripeTerminal(
     //        }
     //    };
     private fun connectInternetReader(call: PluginCall) {
-        val reader = call.getObject("reader")
+        // A call without "reader" has always failed here with a NullPointerException.
+        val reader = call.getObject("reader")!!
         val serialNumber = reader.getString("serialNumber")
         this.locationId = call.getString("locationId", this.locationId)
 
@@ -420,7 +417,8 @@ class StripeTerminal(
     }
 
     private fun connectUsbReader(call: PluginCall) {
-        val reader = call.getObject("reader")
+        // A call without "reader" has always failed here with a NullPointerException.
+        val reader = call.getObject("reader")!!
         val serialNumber = reader.getString("serialNumber")
         this.locationId = call.getString("locationId", this.locationId)
 
@@ -441,7 +439,8 @@ class StripeTerminal(
     }
 
     private fun connectBluetoothReader(call: PluginCall) {
-        val reader = call.getObject("reader")
+        // A call without "reader" has always failed here with a NullPointerException.
+        val reader = call.getObject("reader")!!
         val serialNumber = reader.getString("serialNumber")
         this.locationId = call.getString("locationId", this.locationId)
 
@@ -466,7 +465,8 @@ class StripeTerminal(
     }
 
     private fun connectHandOffReader(call: PluginCall) {
-        val reader = call.getObject("reader")
+        // A call without "reader" has always failed here with a NullPointerException.
+        val reader = call.getObject("reader")!!
         val serialNumber = reader.getString("serialNumber")
         val foundReader = this.discoveredReadersList.firstOrNull()
 
@@ -475,14 +475,13 @@ class StripeTerminal(
             return
         }
 
-        val config: ConnectionConfiguration.AppsOnDevicesConnectionConfiguration = ConnectionConfiguration.AppsOnDevicesConnectionConfiguration(
-            this.handoffReaderListener
-        )
+        val config: ConnectionConfiguration.AppsOnDevicesConnectionConfiguration =
+            ConnectionConfiguration.AppsOnDevicesConnectionConfiguration(this.handoffReaderListener)
 
         Terminal.getInstance().connectReader(foundReader, config, this.readerCallback(call))
     }
 
-    var handoffReaderListener: AppsOnDevicesListener = object : AppsOnDevicesListener {
+    public var handoffReaderListener: AppsOnDevicesListener = object : AppsOnDevicesListener {
         override fun onDisconnect(reason: DisconnectReason) {
             notifyListeners(
                 TerminalEnumEvent.DisconnectedReader.webEventName,
@@ -498,7 +497,7 @@ class StripeTerminal(
         }
     }
 
-    fun cancelDiscoverReaders(call: PluginCall) {
+    public fun cancelDiscoverReaders(call: PluginCall) {
         if (discoveryCancelable == null || discoveryCancelable!!.isCompleted) {
             discoveryCancelable = null
             discoveryToken = null
@@ -522,13 +521,13 @@ class StripeTerminal(
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    call.reject(e.localizedMessage, e)
+                    call.reject(e.localizedMessage, ex = e)
                 }
             }
         )
     }
 
-    fun collectPaymentMethod(call: PluginCall) {
+    public fun collectPaymentMethod(call: PluginCall) {
         val paymentIntent = call.getString("paymentIntent")
         if (paymentIntent == null) {
             call.reject("The value of paymentIntent is not set correctly.")
@@ -538,7 +537,7 @@ class StripeTerminal(
         Terminal.getInstance().retrievePaymentIntent(paymentIntent, createPaymentIntentCallback)
     }
 
-    fun cancelCollectPaymentMethod(call: PluginCall) {
+    public fun cancelCollectPaymentMethod(call: PluginCall) {
         if (this.collectCancelable == null || collectCancelable!!.isCompleted) {
             call.resolve()
             return
@@ -578,7 +577,7 @@ class StripeTerminal(
                     returnObject.put("code", exception.apiError!!.code)
                     returnObject.put("declineCode", exception.apiError!!.declineCode)
                 }
-                collectCall!!.reject(exception.localizedMessage, null as String?, returnObject)
+                collectCall!!.reject(exception.localizedMessage, data = returnObject)
             }
         }
 
@@ -632,11 +631,11 @@ class StripeTerminal(
                     returnObject.put("code", e.apiError!!.code)
                     returnObject.put("declineCode", e.apiError!!.declineCode)
                 }
-                collectCall!!.reject(e.localizedMessage, errorCode, returnObject)
+                collectCall!!.reject(e.localizedMessage, errorCode, data = returnObject)
             }
         }
 
-    fun confirmPaymentIntent(call: PluginCall) {
+    public fun confirmPaymentIntent(call: PluginCall) {
         if (this.paymentIntentInstance == null) {
             call.reject("PaymentIntent not found for confirmPaymentIntent. Use collect method first and try again.")
             return
@@ -647,12 +646,12 @@ class StripeTerminal(
             .confirmPaymentIntent(this.paymentIntentInstance!!, confirmPaymentMethodCallback)
     }
 
-    fun installAvailableUpdate(call: PluginCall) {
+    public fun installAvailableUpdate(call: PluginCall) {
         Terminal.getInstance().installAvailableUpdate()
         call.resolve(emptyObject)
     }
 
-    fun cancelInstallUpdate(call: PluginCall) {
+    public fun cancelInstallUpdate(call: PluginCall) {
         if (this.installUpdateCancelable == null || installUpdateCancelable!!.isCompleted) {
             call.resolve()
             return
@@ -671,7 +670,7 @@ class StripeTerminal(
         )
     }
 
-    fun setReaderDisplay(call: PluginCall) {
+    public fun setReaderDisplay(call: PluginCall) {
         val currency = call.getString("currency", null)
         if (currency == null) {
             call.reject("You must provide a currency value")
@@ -688,7 +687,8 @@ class StripeTerminal(
         val lineItems = call.getArray("lineItems")
         val lineItemsList: List<JSONObject>
         try {
-            lineItemsList = lineItems.toList()
+            // A call without "lineItems" has always failed here with a NullPointerException.
+            lineItemsList = lineItems!!.toList()
         } catch (e: JSONException) {
             call.reject(e.localizedMessage)
             return
@@ -728,7 +728,7 @@ class StripeTerminal(
             )
     }
 
-    fun clearReaderDisplay(call: PluginCall) {
+    public fun clearReaderDisplay(call: PluginCall) {
         Terminal.getInstance()
             .clearReaderDisplay(
                 object : Callback {
@@ -743,7 +743,7 @@ class StripeTerminal(
             )
     }
 
-    fun rebootReader(call: PluginCall) {
+    public fun rebootReader(call: PluginCall) {
         Terminal.getInstance()
             .rebootReader(
                 object : Callback {
@@ -759,7 +759,7 @@ class StripeTerminal(
             )
     }
 
-    fun cancelReaderReconnection(call: PluginCall) {
+    public fun cancelReaderReconnection(call: PluginCall) {
         if (cancelReaderConnectionCancellable == null || cancelReaderConnectionCancellable!!.isCompleted) {
             call.resolve()
             return
@@ -771,7 +771,7 @@ class StripeTerminal(
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    call.reject(e.localizedMessage, e)
+                    call.reject(e.localizedMessage, ex = e)
                 }
             }
         )
@@ -795,8 +795,7 @@ class StripeTerminal(
                 }
                 confirmPaymentIntentCall!!.reject(
                     e.localizedMessage,
-                    null as String?,
-                    returnObject
+                    data = returnObject
                 )
             }
         }
@@ -806,26 +805,21 @@ class StripeTerminal(
         this.discoveredReadersList = ArrayList()
     }
 
-    private fun readerCallback(call: PluginCall): ReaderCallback {
-        return object : ReaderCallback {
-            override fun onSuccess(reader: Reader) {
-                notifyListeners(TerminalEnumEvent.ConnectedReader.webEventName, emptyObject)
-                call.resolve()
-            }
+    private fun readerCallback(call: PluginCall): ReaderCallback = object : ReaderCallback {
+        override fun onSuccess(reader: Reader) {
+            notifyListeners(TerminalEnumEvent.ConnectedReader.webEventName, emptyObject)
+            call.resolve()
+        }
 
-            override fun onFailure(e: TerminalException) {
-                e.printStackTrace()
-                call.reject(e.localizedMessage, e)
-            }
+        override fun onFailure(e: TerminalException) {
+            e.printStackTrace()
+            call.reject(e.localizedMessage, ex = e)
         }
     }
 
     private fun readerListener(): MobileReaderListener {
         return object : MobileReaderListener {
-            override fun onStartInstallingUpdate(
-                update: ReaderSoftwareUpdate,
-                cancelable: Cancelable?
-            ) {
+            override fun onStartInstallingUpdate(update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
                 // Show UI communicating that a required update has started installing
                 installUpdateCancelable = cancelable
                 notifyListeners(
@@ -842,10 +836,7 @@ class StripeTerminal(
                 )
             }
 
-            override fun onFinishInstallingUpdate(
-                update: ReaderSoftwareUpdate?,
-                e: TerminalException?
-            ) {
+            override fun onFinishInstallingUpdate(update: ReaderSoftwareUpdate?, e: TerminalException?) {
                 val eventObject = JSObject()
 
                 if (e != null) {
@@ -865,11 +856,7 @@ class StripeTerminal(
                 notifyListeners(TerminalEnumEvent.FinishInstallingUpdate.webEventName, eventObject)
             }
 
-            override fun onBatteryLevelUpdate(
-                batteryLevel: Float,
-                batteryStatus: BatteryStatus,
-                isCharging: Boolean
-            ) {
+            override fun onBatteryLevelUpdate(batteryLevel: Float, batteryStatus: BatteryStatus, isCharging: Boolean) {
                 notifyListeners(
                     TerminalEnumEvent.BatteryLevel.webEventName,
                     JSObject().put("level", batteryLevel.toDouble()).put("charging", isCharging)
@@ -924,7 +911,7 @@ class StripeTerminal(
         }
     }
 
-    fun setTapToPayUxConfiguration(call: PluginCall) {
+    public fun setTapToPayUxConfiguration(call: PluginCall) {
         try {
             val builder = TapToPayUxConfiguration.Builder()
 
@@ -983,52 +970,46 @@ class StripeTerminal(
         }
     }
 
-    private fun parseColor(colorStr: String): TapToPayUxConfiguration.Color {
-        return if (colorStr == "default") {
-            TapToPayUxConfiguration.Color.Default
-        } else {
-            TapToPayUxConfiguration.Color.Value(Color.parseColor(colorStr))
-        }
+    private fun parseColor(colorStr: String): TapToPayUxConfiguration.Color = if (colorStr == "default") {
+        TapToPayUxConfiguration.Color.Default
+    } else {
+        TapToPayUxConfiguration.Color.Value(Color.parseColor(colorStr))
     }
 
-    private fun convertReaderInterface(reader: Reader?): JSObject {
-        return JSObject()
-            .put("label", reader!!.label)
-            .put("serialNumber", reader.serialNumber)
-            .put("id", reader.id)
-            .put("locationId", if (reader.location != null) reader.location!!.id else null)
-            .put("deviceSoftwareVersion", reader.softwareVersion)
-            .put("simulated", reader.isSimulated)
-            .put("serialNumber", reader.serialNumber)
-            .put("ipAddress", reader.ipAddress)
-            .put("baseUrl", reader.baseUrl)
-            .put("bootloaderVersion", reader.bootloaderVersion)
-            .put("configVersion", reader.configVersion)
-            .put("emvKeyProfileId", reader.emvKeyProfileId)
-            .put("firmwareVersion", reader.firmwareVersion)
-            .put("hardwareVersion", reader.hardwareVersion)
-            .put("macKeyProfileId", reader.macKeyProfileId)
-            .put("pinKeyProfileId", reader.pinKeyProfileId)
-            .put("trackKeyProfileId", reader.trackKeyProfileId)
-            .put("settingsVersion", reader.settingsVersion)
-            .put("pinKeysetId", reader.pinKeysetId)
-            .put("deviceType", terminalMappers.mapFromDeviceType(reader.deviceType))
-            .put("status", terminalMappers.mapFromNetworkStatus(reader.networkStatus))
-            .put("locationStatus", terminalMappers.mapFromLocationStatus(reader.locationStatus))
-            .put(
-                "batteryLevel",
-                if (reader.batteryLevel != null) reader.batteryLevel!!.toDouble() else null
-            )
-            .put(
-                "availableUpdate",
-                terminalMappers.mapFromReaderSoftwareUpdate(reader.availableUpdate)
-            )
-            .put("location", terminalMappers.mapFromLocation(reader.location))
-    }
+    private fun convertReaderInterface(reader: Reader?): JSObject = JSObject()
+        .put("label", reader!!.label)
+        .put("serialNumber", reader.serialNumber)
+        .put("id", reader.id)
+        .put("locationId", if (reader.location != null) reader.location!!.id else null)
+        .put("deviceSoftwareVersion", reader.softwareVersion)
+        .put("simulated", reader.isSimulated)
+        .put("serialNumber", reader.serialNumber)
+        .put("ipAddress", reader.ipAddress)
+        .put("baseUrl", reader.baseUrl)
+        .put("bootloaderVersion", reader.bootloaderVersion)
+        .put("configVersion", reader.configVersion)
+        .put("emvKeyProfileId", reader.emvKeyProfileId)
+        .put("firmwareVersion", reader.firmwareVersion)
+        .put("hardwareVersion", reader.hardwareVersion)
+        .put("macKeyProfileId", reader.macKeyProfileId)
+        .put("pinKeyProfileId", reader.pinKeyProfileId)
+        .put("trackKeyProfileId", reader.trackKeyProfileId)
+        .put("settingsVersion", reader.settingsVersion)
+        .put("pinKeysetId", reader.pinKeysetId)
+        .put("deviceType", terminalMappers.mapFromDeviceType(reader.deviceType))
+        .put("status", terminalMappers.mapFromNetworkStatus(reader.networkStatus))
+        .put("locationStatus", terminalMappers.mapFromLocationStatus(reader.locationStatus))
+        .put(
+            "batteryLevel",
+            if (reader.batteryLevel != null) reader.batteryLevel!!.toDouble() else null
+        )
+        .put(
+            "availableUpdate",
+            terminalMappers.mapFromReaderSoftwareUpdate(reader.availableUpdate)
+        )
+        .put("location", terminalMappers.mapFromLocation(reader.location))
 
-    private fun convertReaderSoftwareUpdate(update: ReaderSoftwareUpdate): JSObject? {
-        return terminalMappers.mapFromReaderSoftwareUpdate(update)
-    }
+    private fun convertReaderSoftwareUpdate(update: ReaderSoftwareUpdate): JSObject? = terminalMappers.mapFromReaderSoftwareUpdate(update)
 
     private fun findReader(discoveredReadersList: List<Reader?>, serialNumber: String?): Reader? {
         var foundReader: Reader? = null

@@ -1,6 +1,6 @@
-package com.getcapacitor.community.stripe.paymentflow;
+package com.getcapacitor.community.stripe.paymentflow
 
-enum class PaymentFlowEvents(val webEventName: String) {
+public enum class PaymentFlowEvents(public val webEventName: String) {
     Loaded("paymentFlowLoaded"),
     FailedToLoad("paymentFlowFailedToLoad"),
     Opened("paymentFlowOpened"),
@@ -8,5 +8,5 @@ enum class PaymentFlowEvents(val webEventName: String) {
     Completed("paymentFlowCompleted"),
     Canceled("paymentFlowCanceled"),
     Failed("paymentFlowFailed"),
-    Created("paymentFlowCreated"),
+    Created("paymentFlowCreated")
 }

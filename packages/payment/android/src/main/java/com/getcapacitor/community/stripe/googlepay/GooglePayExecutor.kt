@@ -10,7 +10,7 @@ import com.getcapacitor.community.stripe.models.EventNotifier
 import com.getcapacitor.community.stripe.models.Executor
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 
-class GooglePayExecutor(
+public class GooglePayExecutor(
     contextSupplier: Supplier<Context>,
     activitySupplier: Supplier<Activity>,
     notifyListenersFunction: EventNotifier,
@@ -22,17 +22,17 @@ class GooglePayExecutor(
     pluginLogTag,
     "GooglePayExecutor"
 ) {
-    var googlePayLauncher: GooglePayLauncher? = null
+    public var googlePayLauncher: GooglePayLauncher? = null
     private val emptyObject = JSObject()
     private var clientSecret: String? = null
     private var currency: String? = null
-    var isAvailable: Boolean = false
+    public var isAvailable: Boolean = false
 
     init {
         this.contextSupplier = contextSupplier
     }
 
-    fun isGooglePayAvailable(call: PluginCall) {
+    public fun isGooglePayAvailable(call: PluginCall) {
         if (isAvailable) {
             call.resolve()
         } else {
@@ -40,7 +40,7 @@ class GooglePayExecutor(
         }
     }
 
-    fun createGooglePay(call: PluginCall) {
+    public fun createGooglePay(call: PluginCall) {
         this.clientSecret = call.getString("paymentIntentClientSecret")
         this.currency = call.getString("currency", "USD")
 
@@ -59,7 +59,7 @@ class GooglePayExecutor(
         call.resolve()
     }
 
-    fun presentGooglePay(call: PluginCall?) {
+    public fun presentGooglePay(call: PluginCall?) {
         if (this.clientSecret != null && clientSecret!!.startsWith("seti_")) {
             googlePayLauncher!!.presentForSetupIntent(clientSecret!!, currency!!)
         } else {
@@ -67,11 +67,7 @@ class GooglePayExecutor(
         }
     }
 
-    fun onGooglePayResult(
-        bridge: Bridge,
-        callbackId: String?,
-        result: GooglePayLauncher.Result
-    ) {
+    public fun onGooglePayResult(bridge: Bridge, callbackId: String?, result: GooglePayLauncher.Result) {
         val call = bridge.getSavedCall(callbackId)
 
         if (result is GooglePayLauncher.Result.Completed) {

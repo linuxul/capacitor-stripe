@@ -21,7 +21,7 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 
 @CapacitorPlugin(name = "Stripe")
-class StripePlugin : Plugin() {
+public class StripePlugin : Plugin() {
     private var publishableKey: String? = null
     private var paymentSheetCallbackId: String? = null
     private var paymentFlowCallbackId: String? = null
@@ -29,7 +29,7 @@ class StripePlugin : Plugin() {
 
     private val identityVerificationCallbackId: String? = null
 
-    private lateinit var metaData: MetaData;
+    private lateinit var metaData: MetaData
 
     private val paymentSheetExecutor = PaymentSheetExecutor(
         { this.context },
@@ -59,7 +59,7 @@ class StripePlugin : Plugin() {
     )
 
     override fun load() {
-        this.metaData = MetaData { this.context };
+        this.metaData = MetaData { this.context }
         if (metaData.enableGooglePay) {
             this.publishableKey = metaData.publishableKey
 
@@ -69,7 +69,7 @@ class StripePlugin : Plugin() {
                 metaData.stripeAccount
             )
 
-            Stripe.appInfo = AppInfo.create(APP_INFO_NAME);
+            Stripe.appInfo = AppInfo.create(APP_INFO_NAME)
 
             googlePayExecutor.googlePayLauncher = GooglePayLauncher(
                 activity,
@@ -80,7 +80,13 @@ class StripePlugin : Plugin() {
                     metaData.emailAddressRequired!!,
                     GooglePayLauncher.BillingAddressConfig(
                         metaData.billingAddressRequired!!,
-                        if (metaData.billingAddressFormat == "Full") GooglePayLauncher.BillingAddressConfig.Format.Full else GooglePayLauncher.BillingAddressConfig.Format.Min,
+                        if (metaData.billingAddressFormat ==
+                            "Full"
+                        ) {
+                            GooglePayLauncher.BillingAddressConfig.Format.Full
+                        } else {
+                            GooglePayLauncher.BillingAddressConfig.Format.Min
+                        },
                         metaData.phoneNumberRequired!!
                     ),
                     metaData.existingPaymentMethodRequired!!
@@ -129,7 +135,7 @@ class StripePlugin : Plugin() {
     }
 
     @PluginMethod
-    fun initialize(call: PluginCall) {
+    public fun initialize(call: PluginCall) {
         try {
             publishableKey = call.getString("publishableKey")
 
@@ -141,20 +147,20 @@ class StripePlugin : Plugin() {
             val stripeAccountId = call.getString("stripeAccount", null)
 
             PaymentConfiguration.init(context, publishableKey!!, stripeAccountId)
-            Stripe.appInfo = AppInfo.create(APP_INFO_NAME);
+            Stripe.appInfo = AppInfo.create(APP_INFO_NAME)
             call.resolve()
         } catch (e: Exception) {
-            call.reject("unable to set publishable key: " + e.localizedMessage, e)
+            call.reject("unable to set publishable key: " + e.localizedMessage, ex = e)
         }
     }
 
     @PluginMethod
-    fun createPaymentSheet(call: PluginCall) {
+    public fun createPaymentSheet(call: PluginCall) {
         paymentSheetExecutor.createPaymentSheet(call)
     }
 
     @PluginMethod
-    fun presentPaymentSheet(call: PluginCall) {
+    public fun presentPaymentSheet(call: PluginCall) {
         paymentSheetCallbackId = call.callbackId
         bridge.saveCall(call)
 
@@ -162,12 +168,12 @@ class StripePlugin : Plugin() {
     }
 
     @PluginMethod
-    fun createPaymentFlow(call: PluginCall) {
+    public fun createPaymentFlow(call: PluginCall) {
         paymentFlowExecutor.createPaymentFlow(call)
     }
 
     @PluginMethod
-    fun presentPaymentFlow(call: PluginCall) {
+    public fun presentPaymentFlow(call: PluginCall) {
         paymentFlowCallbackId = call.callbackId
         bridge.saveCall(call)
 
@@ -175,7 +181,7 @@ class StripePlugin : Plugin() {
     }
 
     @PluginMethod
-    fun confirmPaymentFlow(call: PluginCall) {
+    public fun confirmPaymentFlow(call: PluginCall) {
         paymentFlowCallbackId = call.callbackId
         bridge.saveCall(call)
 
@@ -183,39 +189,39 @@ class StripePlugin : Plugin() {
     }
 
     @PluginMethod
-    fun isApplePayAvailable(call: PluginCall) {
+    public fun isApplePayAvailable(call: PluginCall) {
         call.unimplemented("Not implemented on Android.")
     }
 
     @PluginMethod
-    fun createApplePay(call: PluginCall) {
+    public fun createApplePay(call: PluginCall) {
         call.unimplemented("Not implemented on Android.")
     }
 
     @PluginMethod
-    fun presentApplePay(call: PluginCall) {
+    public fun presentApplePay(call: PluginCall) {
         call.unimplemented("Not implemented on Android.")
     }
 
     @PluginMethod
-    fun isGooglePayAvailable(call: PluginCall) {
+    public fun isGooglePayAvailable(call: PluginCall) {
         googlePayExecutor.isGooglePayAvailable(call)
     }
 
     @PluginMethod
-    fun createGooglePay(call: PluginCall) {
+    public fun createGooglePay(call: PluginCall) {
         googlePayExecutor.createGooglePay(call)
     }
 
     @PluginMethod
-    fun presentGooglePay(call: PluginCall) {
+    public fun presentGooglePay(call: PluginCall) {
         googlePayCallbackId = call.callbackId
         bridge.saveCall(call)
 
         googlePayExecutor.presentGooglePay(call)
     }
 
-    companion object {
+    public companion object {
         private const val APP_INFO_NAME = "@capacitor-community/stripe"
     }
 }

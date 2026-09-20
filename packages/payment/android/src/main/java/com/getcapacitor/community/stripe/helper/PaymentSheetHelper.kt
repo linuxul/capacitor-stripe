@@ -2,13 +2,13 @@ package com.getcapacitor.community.stripe.helper
 
 import com.getcapacitor.JSObject
 import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.PaymentSheet.BillingDetailsCollectionConfiguration
-import com.stripe.android.paymentsheet.PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode
 import com.stripe.android.paymentsheet.PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode
+import com.stripe.android.paymentsheet.PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode
+import com.stripe.android.paymentsheet.addresselement.AddressDetails
 
-class PaymentSheetHelper {
-    fun fromJSObjectToBillingDetails(obj: JSObject?): PaymentSheet.BillingDetails {
+public class PaymentSheetHelper {
+    public fun fromJSObjectToBillingDetails(obj: JSObject?): PaymentSheet.BillingDetails {
         if (obj == null) return PaymentSheet.BillingDetails()
         val address = fromJSObjectToAddress(obj.getJSObject("address", null))
         return PaymentSheet.BillingDetails(
@@ -19,7 +19,7 @@ class PaymentSheetHelper {
         )
     }
 
-    fun fromJSObjectToShippingDetails(obj: JSObject?): AddressDetails? {
+    public fun fromJSObjectToShippingDetails(obj: JSObject?): AddressDetails? {
         if (obj == null) return null
         val address = fromJSObjectToAddress(obj.getJSObject("address", null))
         return AddressDetails(
@@ -30,7 +30,7 @@ class PaymentSheetHelper {
         )
     }
 
-    fun fromJSObjectToBillingCollectionConfig(obj: JSObject?): BillingDetailsCollectionConfiguration {
+    public fun fromJSObjectToBillingCollectionConfig(obj: JSObject?): BillingDetailsCollectionConfiguration {
         if (obj == null) return BillingDetailsCollectionConfiguration()
 
         val name = parseCollectionMode(obj.getString("name"))

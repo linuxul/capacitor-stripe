@@ -12,7 +12,7 @@ import com.getcapacitor.community.stripe.models.Executor
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 
-class PaymentSheetExecutor(
+public class PaymentSheetExecutor(
     contextSupplier: Supplier<Context>,
     activitySupplier: Supplier<Activity>,
     notifyListenersFunction: EventNotifier,
@@ -24,7 +24,7 @@ class PaymentSheetExecutor(
     pluginLogTag,
     "PaymentSheetExecutor"
 ) {
-    var paymentSheet: PaymentSheet? = null
+    public var paymentSheet: PaymentSheet? = null
     private var configurationBuilder: PaymentSheet.Configuration.Builder? = null
     private val emptyObject = JSObject()
 
@@ -35,7 +35,7 @@ class PaymentSheetExecutor(
         this.contextSupplier = contextSupplier
     }
 
-    fun createPaymentSheet(call: PluginCall) {
+    public fun createPaymentSheet(call: PluginCall) {
         paymentIntentClientSecret = call.getString("paymentIntentClientSecret", null)
         setupIntentClientSecret = call.getString("setupIntentClientSecret", null)
 
@@ -44,9 +44,9 @@ class PaymentSheetExecutor(
 
         val paymentMethodLayout: PaymentSheet.PaymentMethodLayout = when (call.getString("paymentMethodLayout", "automatic")) {
             "horizontal" -> PaymentSheet.PaymentMethodLayout.Horizontal
-            "vertical"   -> PaymentSheet.PaymentMethodLayout.Vertical
-            "automatic"  -> PaymentSheet.PaymentMethodLayout.Automatic
-            else         -> PaymentSheet.PaymentMethodLayout.Automatic
+            "vertical" -> PaymentSheet.PaymentMethodLayout.Vertical
+            "automatic" -> PaymentSheet.PaymentMethodLayout.Automatic
+            else -> PaymentSheet.PaymentMethodLayout.Automatic
         }
 
         if (paymentIntentClientSecret == null && setupIntentClientSecret == null) {
@@ -79,13 +79,16 @@ class PaymentSheetExecutor(
 
         val enableGooglePay = call.getBoolean("enableGooglePay", false)
 
-        val customer: PaymentSheet.CustomerConfiguration? = if (customerId != null
-        ) PaymentSheet.CustomerConfiguration(customerId, customerEphemeralKeySecret!!)
-        else null
+        val customer: PaymentSheet.CustomerConfiguration? = if (customerId != null) {
+            PaymentSheet.CustomerConfiguration(customerId, customerEphemeralKeySecret!!)
+        } else {
+            null
+        }
 
-
-        val defaultBillingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToBillingDetails(call.getObject("defaultBillingDetails", null))
-        val shippingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToShippingDetails(call.getObject("shippingDetails", null));
+        val defaultBillingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToBillingDetails(
+            call.getObject("defaultBillingDetails", null)
+        )
+        val shippingDetailsConfiguration = PaymentSheetHelper().fromJSObjectToShippingDetails(call.getObject("shippingDetails", null))
         val billingDetailsCollectionConfiguration = PaymentSheetHelper().fromJSObjectToBillingCollectionConfig(
             call.getObject("billingDetailsCollectionConfiguration", null)
         )
@@ -107,18 +110,20 @@ class PaymentSheetExecutor(
                 environment = PaymentSheet.GooglePayConfiguration.Environment.Test
             }
 
-            configurationBuilder!!.googlePay(PaymentSheet.GooglePayConfiguration(
+            configurationBuilder!!.googlePay(
+                PaymentSheet.GooglePayConfiguration(
                     environment,
                     call.getString("countryCode", "US")!!,
                     call.getString("currencyCode", null)
-                ))
+                )
+            )
         }
 
         notifyListenersFunction.accept(PaymentSheetEvents.Loaded.webEventName, emptyObject)
         call.resolve()
     }
 
-    fun presentPaymentSheet(call: PluginCall) {
+    public fun presentPaymentSheet(call: PluginCall) {
         try {
             if (paymentIntentClientSecret != null) {
                 paymentSheet!!.presentWithPaymentIntent(
@@ -132,15 +137,11 @@ class PaymentSheetExecutor(
                 )
             }
         } catch (ex: Exception) {
-            call.reject(ex.localizedMessage, ex)
+            call.reject(ex.localizedMessage, ex = ex)
         }
     }
 
-    fun onPaymentSheetResult(
-        bridge: Bridge,
-        callbackId: String?,
-        paymentSheetResult: PaymentSheetResult
-    ) {
+    public fun onPaymentSheetResult(bridge: Bridge, callbackId: String?, paymentSheetResult: PaymentSheetResult) {
         val call = bridge.getSavedCall(callbackId)
 
         if (paymentSheetResult is PaymentSheetResult.Canceled) {
