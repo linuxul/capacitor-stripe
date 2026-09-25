@@ -9,26 +9,26 @@ public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StripePlugin"
     public let jsName = "Stripe"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: .promise),
-        CAPPluginMethod(name: "handleURLCallback", returnType: .promise),
-        CAPPluginMethod(name: "createPaymentSheet", returnType: .promise),
-        CAPPluginMethod(name: "presentPaymentSheet", returnType: .promise),
-        CAPPluginMethod(name: "createPaymentFlow", returnType: .promise),
-        CAPPluginMethod(name: "presentPaymentFlow", returnType: .promise),
-        CAPPluginMethod(name: "confirmPaymentFlow", returnType: .promise),
-        CAPPluginMethod(name: "isApplePayAvailable", returnType: .promise),
-        CAPPluginMethod(name: "createApplePay", returnType: .promise),
-        CAPPluginMethod(name: "presentApplePay", returnType: .promise),
-        CAPPluginMethod(name: "updateApplePaySheet", returnType: .promise),
-        CAPPluginMethod(name: "isGooglePayAvailable", returnType: .promise),
-        CAPPluginMethod(name: "createGooglePay", returnType: .promise),
-        CAPPluginMethod(name: "presentGooglePay", returnType: .promise)
+        .promise("initialize", StripePlugin.initialize),
+        .promise("handleURLCallback", StripePlugin.handleURLCallback),
+        .promise("createPaymentSheet", StripePlugin.createPaymentSheet),
+        .promise("presentPaymentSheet", StripePlugin.presentPaymentSheet),
+        .promise("createPaymentFlow", StripePlugin.createPaymentFlow),
+        .promise("presentPaymentFlow", StripePlugin.presentPaymentFlow),
+        .promise("confirmPaymentFlow", StripePlugin.confirmPaymentFlow),
+        .promise("isApplePayAvailable", StripePlugin.isApplePayAvailable),
+        .promise("createApplePay", StripePlugin.createApplePay),
+        .promise("presentApplePay", StripePlugin.presentApplePay),
+        .async("updateApplePaySheet", StripePlugin.updateApplePaySheet),
+        .promise("isGooglePayAvailable", StripePlugin.isGooglePayAvailable),
+        .promise("createGooglePay", StripePlugin.createGooglePay),
+        .promise("presentGooglePay", StripePlugin.presentGooglePay)
     ]
     private let paymentSheetExecutor = PaymentSheetExecutor()
     private let paymentFlowExecutor = PaymentFlowExecutor()
     private let applePayExecutor = ApplePayExecutor()
 
-    @objc func initialize(_ call: CAPPluginCall) {
+    func initialize(_ call: CAPPluginCall) throws {
         self.paymentSheetExecutor.plugin = self
         self.paymentFlowExecutor.plugin = self
         self.applePayExecutor.plugin = self
@@ -36,8 +36,7 @@ public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
         let publishableKey = call.getString("publishableKey") ?? ""
 
         if publishableKey == "" {
-            call.reject("you must provide publishableKey")
-            return
+            throw CAPPluginError("you must provide publishableKey")
         }
 
         StripeAPI.defaultPublishableKey = publishableKey
@@ -53,7 +52,7 @@ public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
-    @objc func handleURLCallback(_ call: CAPPluginCall) {
+    func handleURLCallback(_ call: CAPPluginCall) throws {
         self.paymentSheetExecutor.plugin = self
         self.paymentFlowExecutor.plugin = self
         self.applePayExecutor.plugin = self
@@ -61,8 +60,7 @@ public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
         let urlString = call.getString("url") ?? ""
 
         if urlString == "" {
-            call.reject("you must provide url returned from browser")
-            return
+            throw CAPPluginError("you must provide url returned from browser")
         }
 
         let url = URL(string: urlString)!
@@ -77,54 +75,59 @@ public class StripePlugin: CAPPlugin, CAPBridgedPlugin {
 
     }
 
-    @objc func createPaymentSheet(_ call: CAPPluginCall) {
-        self.paymentSheetExecutor.createPaymentSheet(call)
+    func createPaymentSheet(_ call: CAPPluginCall) throws {
+        try self.paymentSheetExecutor.createPaymentSheet(call)
     }
 
-    @objc func presentPaymentSheet(_ call: CAPPluginCall) {
+    // The payment sheets and Apple Pay answer in Stripe's completion handlers and delegate callbacks, after the user
+    // closes them. The present and confirm methods stay synchronous: they present in DispatchQueue.main.async and
+    // settle the call from those callbacks, as before.
+
+    func presentPaymentSheet(_ call: CAPPluginCall) {
         self.paymentSheetExecutor.presentPaymentSheet(call)
     }
 
-    @objc func createPaymentFlow(_ call: CAPPluginCall) {
-        self.paymentFlowExecutor.createPaymentFlow(call)
+    func createPaymentFlow(_ call: CAPPluginCall) throws {
+        try self.paymentFlowExecutor.createPaymentFlow(call)
     }
 
-    @objc func presentPaymentFlow(_ call: CAPPluginCall) {
+    func presentPaymentFlow(_ call: CAPPluginCall) {
         self.paymentFlowExecutor.presentPaymentFlow(call)
     }
 
-    @objc func confirmPaymentFlow(_ call: CAPPluginCall) {
+    func confirmPaymentFlow(_ call: CAPPluginCall) {
         self.paymentFlowExecutor.confirmPaymentFlow(call)
     }
 
-    @objc func isApplePayAvailable(_ call: CAPPluginCall) {
-        self.applePayExecutor.isApplePayAvailable(call)
+    func isApplePayAvailable(_ call: CAPPluginCall) throws {
+        try self.applePayExecutor.isApplePayAvailable(call)
     }
 
-    @objc func createApplePay(_ call: CAPPluginCall) {
-        self.applePayExecutor.createApplePay(call)
+    func createApplePay(_ call: CAPPluginCall) throws {
+        try self.applePayExecutor.createApplePay(call)
     }
 
-    @objc func presentApplePay(_ call: CAPPluginCall) {
-        self.applePayExecutor.presentApplePay(call)
+    func presentApplePay(_ call: CAPPluginCall) throws {
+        try self.applePayExecutor.presentApplePay(call)
     }
 
-    @objc func updateApplePaySheet(_ call: CAPPluginCall) {
-        DispatchQueue.main.async {
-            self.applePayExecutor.updateApplePaySheet(call)
-        }
+    /// Answers the shipping contact update the Apple Pay sheet is waiting for. The pending handler belongs to the
+    /// sheet's delegate callbacks on the main thread, so the method runs on the main actor.
+    @MainActor
+    func updateApplePaySheet(_ call: CAPPluginCall) async throws {
+        try self.applePayExecutor.updateApplePaySheet(call)
     }
 
-    @objc func isGooglePayAvailable(_ call: CAPPluginCall) {
-        call.unavailable("Not implemented on iOS.")
+    func isGooglePayAvailable(_ call: CAPPluginCall) throws {
+        throw CAPPluginError.unavailable("Not implemented on iOS.")
     }
 
-    @objc func createGooglePay(_ call: CAPPluginCall) {
-        call.unavailable("Not implemented on iOS.")
+    func createGooglePay(_ call: CAPPluginCall) throws {
+        throw CAPPluginError.unavailable("Not implemented on iOS.")
     }
 
-    @objc func presentGooglePay(_ call: CAPPluginCall) {
-        call.unavailable("Not implemented on iOS.")
+    func presentGooglePay(_ call: CAPPluginCall) throws {
+        throw CAPPluginError.unavailable("Not implemented on iOS.")
     }
 
     func getRootVC() -> UIViewController? {

@@ -14,25 +14,22 @@ class ApplePayExecutor: NSObject, ApplePayContextDelegate {
     private var pendingShippingUpdateId: String?
     private var shippingHandlerWorkItem: DispatchWorkItem?
 
-    func isApplePayAvailable(_ call: CAPPluginCall) {
+    func isApplePayAvailable(_ call: CAPPluginCall) throws {
         if !StripeAPI.deviceSupportsApplePay() {
-            call.reject("Can not use on this Device.")
-            return
+            throw CAPPluginError("Can not use on this Device.")
         }
         call.resolve()
     }
 
-    func createApplePay(_ call: CAPPluginCall) {
+    func createApplePay(_ call: CAPPluginCall) throws {
         let paymentIntentClientSecret = call.getString("paymentIntentClientSecret") ?? nil
         if paymentIntentClientSecret == nil {
-            call.reject("Invalid Params. this method require paymentIntentClientSecret")
-            return
+            throw CAPPluginError("Invalid Params. this method require paymentIntentClientSecret")
         }
 
         let items = call.getArray("paymentSummaryItems", [String: Any].self) ?? nil
         if items == nil {
-            call.reject("Invalid Params. this method require paymentSummaryItems")
-            return
+            throw CAPPluginError("Invalid Params. this method require paymentSummaryItems")
         }
 
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
@@ -81,21 +78,19 @@ class ApplePayExecutor: NSObject, ApplePayContextDelegate {
         call.resolve()
     }
 
-    func presentApplePay(_ call: CAPPluginCall) {
-        if let paymentRequest = self.paymentRequest {
-            if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
-                DispatchQueue.main.async {
-                    if let rootViewController = self.plugin?.getRootVC() {
-                        self.plugin?.bridge?.saveCall(call)
-                        self.payCallId = call.callbackId
-                        applePayContext.presentApplePay(on: rootViewController)
-                    }
-                }
-            } else {
-                call.reject("STPApplePayContext is failed")
+    func presentApplePay(_ call: CAPPluginCall) throws {
+        guard let paymentRequest = self.paymentRequest else {
+            throw CAPPluginError("You should run createApplePay befor presentApplePay")
+        }
+        guard let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) else {
+            throw CAPPluginError("STPApplePayContext is failed")
+        }
+        DispatchQueue.main.async {
+            if let rootViewController = self.plugin?.getRootVC() {
+                self.plugin?.bridge?.saveCall(call)
+                self.payCallId = call.callbackId
+                applePayContext.presentApplePay(on: rootViewController)
             }
-        } else {
-            call.reject("You should run createApplePay befor presentApplePay")
         }
     }
 }
@@ -170,19 +165,17 @@ extension ApplePayExecutor {
         self.plugin?.notifyListeners(ApplePayEvents.DidSelectShippingContact.rawValue, data: ["contact": jsonArray, "updateId": updateId])
     }
 
-    func updateApplePaySheet(_ call: CAPPluginCall) {
+    @MainActor
+    func updateApplePaySheet(_ call: CAPPluginCall) throws {
         guard let updateId = call.getString("updateId"), !updateId.isEmpty else {
-            call.reject("Invalid Params. this method requires updateId")
-            return
+            throw CAPPluginError("Invalid Params. this method requires updateId")
         }
 
         guard let handler = pendingShippingHandler else {
-            call.reject("No pending shipping update")
-            return
+            throw CAPPluginError("No pending shipping update")
         }
         guard pendingShippingUpdateId == updateId else {
-            call.reject("Stale shipping update")
-            return
+            throw CAPPluginError("Stale shipping update")
         }
 
         shippingHandlerWorkItem?.cancel()

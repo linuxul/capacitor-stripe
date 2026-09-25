@@ -6,7 +6,7 @@ class PaymentFlowExecutor: NSObject {
     weak var plugin: StripePlugin?
     var paymentSheetFlowController: PaymentSheet.FlowController!
 
-    func createPaymentFlow(_ call: CAPPluginCall) {
+    func createPaymentFlow(_ call: CAPPluginCall) throws {
         let paymentIntentClientSecret = call.getString("paymentIntentClientSecret") ?? nil
         let setupIntentClientSecret = call.getString("setupIntentClientSecret") ?? nil
 
@@ -16,15 +16,13 @@ class PaymentFlowExecutor: NSObject {
         if paymentIntentClientSecret == nil && setupIntentClientSecret == nil {
             let errorText = "Invalid Params. this method require paymentIntentClientSecret or setupIntentClientSecret."
             self.plugin?.notifyListeners(PaymentFlowEvents.FailedToLoad.rawValue, data: ["error": errorText])
-            call.reject(errorText)
-            return
+            throw CAPPluginError(errorText)
         }
 
         if customerId != nil && customerEphemeralKeySecret == nil {
             let errorText = "Invalid Params. When you set customerId, you must set customerEphemeralKeySecret."
             self.plugin?.notifyListeners(PaymentFlowEvents.FailedToLoad.rawValue, data: ["error": errorText])
-            call.reject(errorText)
-            return
+            throw CAPPluginError(errorText)
         }
 
         // MARK: Create a PaymentSheet instance
