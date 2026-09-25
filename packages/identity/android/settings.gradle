@@ -1,2 +1,6 @@
 include ':capacitor-android'
-project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/android/capacitor')
+// The runtime is in this package's node_modules, or hoisted to the workspace root when the packages are installed together
+def capacitorAndroid = ['../node_modules/@capacitor/android/capacitor', '../../../node_modules/@capacitor/android/capacitor']
+    .collect { new File(settingsDir, it) }
+    .find { it.exists() } ?: new File(settingsDir, '../node_modules/@capacitor/android/capacitor')
+project(':capacitor-android').projectDir = capacitorAndroid
