@@ -1,6 +1,6 @@
 {
   "name": "@capacitor-community/stripe",
-  "version": "8.2.1",
+  "version": "9.0.0",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -83,7 +83,7 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@capacitor/core": ">=8.0.0",
+    "@capacitor/core": ">=9.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "stripe-pwa-elements": "^3.0.0",
     "@stripe/stripe-js": "^8.4.0"
