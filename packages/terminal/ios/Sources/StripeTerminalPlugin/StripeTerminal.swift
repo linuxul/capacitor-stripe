@@ -251,33 +251,32 @@ public class StripeTerminal: NSObject, DiscoveryDelegate, TerminalDelegate, Read
         }
     }
 
-    public func confirmPaymentIntent(_ call: CAPPluginCall) {
-        if let paymentIntent = self.paymentIntent {
-            Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
-                if let error = confirmError {
-                    print("confirmPaymentIntent failed: \(error)")
-                    var errorDetails: [String: Any] = ["message": error.localizedDescription]
-                    if let paymentIntent = error.paymentIntent,
-                       let lastPaymentError = paymentIntent.lastPaymentError {
+    public func confirmPaymentIntent(_ call: CAPPluginCall) throws {
+        guard let paymentIntent = self.paymentIntent else {
+            throw CAPPluginError("PaymentIntent not found for confirmPaymentIntent. Use collect method first and try again.")
+        }
+        Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
+            if let error = confirmError {
+                print("confirmPaymentIntent failed: \(error)")
+                var errorDetails: [String: Any] = ["message": error.localizedDescription]
+                if let paymentIntent = error.paymentIntent,
+                   let lastPaymentError = paymentIntent.lastPaymentError {
 
-                        if let declineCode = lastPaymentError.declineCode {
-                            errorDetails["declineCode"] = declineCode
-                        }
-
-                        if let code = lastPaymentError.code {
-                            errorDetails["code"] = code
-                        }
+                    if let declineCode = lastPaymentError.declineCode {
+                        errorDetails["declineCode"] = declineCode
                     }
-                    self.plugin?.notifyListeners(TerminalEvents.Failed.rawValue, data: errorDetails)
-                    call.reject(error.localizedDescription, nil, nil, errorDetails)
-                } else if let confirmedIntent = confirmResult {
-                    print("PaymentIntent confirmed: \(confirmedIntent)")
-                    self.plugin?.notifyListeners(TerminalEvents.ConfirmedPaymentIntent.rawValue, data: [:])
-                    call.resolve()
+
+                    if let code = lastPaymentError.code {
+                        errorDetails["code"] = code
+                    }
                 }
+                self.plugin?.notifyListeners(TerminalEvents.Failed.rawValue, data: errorDetails)
+                call.reject(error.localizedDescription, nil, nil, errorDetails)
+            } else if let confirmedIntent = confirmResult {
+                print("PaymentIntent confirmed: \(confirmedIntent)")
+                self.plugin?.notifyListeners(TerminalEvents.ConfirmedPaymentIntent.rawValue, data: [:])
+                call.resolve()
             }
-        } else {
-            call.reject("PaymentIntent not found for confirmPaymentIntent. Use collect method first and try again.")
         }
     }
 
@@ -291,10 +290,9 @@ public class StripeTerminal: NSObject, DiscoveryDelegate, TerminalDelegate, Read
         call.resolve([:])
     }
 
-    public func isTapToPayAccountLinked(_ call: CAPPluginCall) {
+    public func isTapToPayAccountLinked(_ call: CAPPluginCall) throws {
         if self.isInitialize == false {
-            call.reject("Stripe Terminal is not initialized. Call initialize() first.")
-            return
+            throw CAPPluginError("Stripe Terminal is not initialized. Call initialize() first.")
         }
 
         Terminal.shared.isTapToPayAccountLinked(call.getString("onBehalfOf")) { isLinked, error in
@@ -311,18 +309,15 @@ public class StripeTerminal: NSObject, DiscoveryDelegate, TerminalDelegate, Read
         call.resolve([:])
     }
 
-    public func setReaderDisplay(_ call: CAPPluginCall) {
+    public func setReaderDisplay(_ call: CAPPluginCall) throws {
         guard let currency = call.getString("currency") else {
-            call.reject("You must provide a currency value")
-            return
+            throw CAPPluginError("You must provide a currency value")
         }
         guard let tax = call.getInt("tax") as? NSNumber else {
-            call.reject("You must provide a tax value")
-            return
+            throw CAPPluginError("You must provide a tax value")
         }
         guard let total = call.getInt("total") as? NSNumber else {
-            call.reject("You must provide a total value")
-            return
+            throw CAPPluginError("You must provide a total value")
         }
 
         let cartBuilder = CartBuilder(currency: currency)
@@ -337,8 +332,7 @@ public class StripeTerminal: NSObject, DiscoveryDelegate, TerminalDelegate, Read
         do {
             cart = try cartBuilder.build()
         } catch {
-            call.reject(error.localizedDescription)
-            return
+            throw CAPPluginError(error.localizedDescription, underlyingError: error)
         }
 
         Terminal.shared.setReaderDisplay(cart) { error in

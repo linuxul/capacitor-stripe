@@ -8,25 +8,25 @@ public class StripeTerminalPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StripeTerminalPlugin"
     public let jsName = "StripeTerminal"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: .promise),
-        CAPPluginMethod(name: "setConnectionToken", returnType: .promise),
-        CAPPluginMethod(name: "discoverReaders", returnType: .promise),
-        CAPPluginMethod(name: "cancelDiscoverReaders", returnType: .promise),
-        CAPPluginMethod(name: "connectReader", returnType: .promise),
-        CAPPluginMethod(name: "getConnectedReader", returnType: .promise),
-        CAPPluginMethod(name: "disconnectReader", returnType: .promise),
-        CAPPluginMethod(name: "collectPaymentMethod", returnType: .promise),
-        CAPPluginMethod(name: "cancelCollectPaymentMethod", returnType: .promise),
-        CAPPluginMethod(name: "confirmPaymentIntent", returnType: .promise),
-        CAPPluginMethod(name: "setSimulatorConfiguration", returnType: .promise),
-        CAPPluginMethod(name: "installAvailableUpdate", returnType: .promise),
-        CAPPluginMethod(name: "cancelInstallUpdate", returnType: .promise),
-        CAPPluginMethod(name: "setReaderDisplay", returnType: .promise),
-        CAPPluginMethod(name: "clearReaderDisplay", returnType: .promise),
-        CAPPluginMethod(name: "rebootReader", returnType: .promise),
-        CAPPluginMethod(name: "cancelReaderReconnection", returnType: .promise),
-        CAPPluginMethod(name: "setTapToPayUxConfiguration", returnType: .promise),
-        CAPPluginMethod(name: "isTapToPayAccountLinked", returnType: .promise)
+        .promise("initialize", StripeTerminalPlugin.initialize),
+        .promise("setConnectionToken", StripeTerminalPlugin.setConnectionToken),
+        .promise("discoverReaders", StripeTerminalPlugin.discoverReaders),
+        .promise("cancelDiscoverReaders", StripeTerminalPlugin.cancelDiscoverReaders),
+        .promise("connectReader", StripeTerminalPlugin.connectReader),
+        .promise("getConnectedReader", StripeTerminalPlugin.getConnectedReader),
+        .promise("disconnectReader", StripeTerminalPlugin.disconnectReader),
+        .promise("collectPaymentMethod", StripeTerminalPlugin.collectPaymentMethod),
+        .promise("cancelCollectPaymentMethod", StripeTerminalPlugin.cancelCollectPaymentMethod),
+        .promise("confirmPaymentIntent", StripeTerminalPlugin.confirmPaymentIntent),
+        .promise("setSimulatorConfiguration", StripeTerminalPlugin.setSimulatorConfiguration),
+        .promise("installAvailableUpdate", StripeTerminalPlugin.installAvailableUpdate),
+        .promise("cancelInstallUpdate", StripeTerminalPlugin.cancelInstallUpdate),
+        .promise("setReaderDisplay", StripeTerminalPlugin.setReaderDisplay),
+        .promise("clearReaderDisplay", StripeTerminalPlugin.clearReaderDisplay),
+        .promise("rebootReader", StripeTerminalPlugin.rebootReader),
+        .promise("cancelReaderReconnection", StripeTerminalPlugin.cancelReaderReconnection),
+        .promise("setTapToPayUxConfiguration", StripeTerminalPlugin.setTapToPayUxConfiguration),
+        .promise("isTapToPayAccountLinked", StripeTerminalPlugin.isTapToPayAccountLinked)
     ]
     private let implementation = StripeTerminal()
 
@@ -36,15 +36,19 @@ public class StripeTerminalPlugin: CAPPlugin, CAPBridgedPlugin {
         // TODO: add STPAPIClient.shared.appInfo
     }
 
-    @objc func initialize(_ call: CAPPluginCall) {
+    // Every method stays synchronous on the bridge queue. Reader discovery, connection, collection and confirmation
+    // are Stripe Terminal operations that answer in the SDK's completion handlers and delegate callbacks, and that
+    // JavaScript runs in order; async methods would not keep that order.
+
+    func initialize(_ call: CAPPluginCall) {
         self.implementation.initialize(call)
     }
 
-    @objc func setConnectionToken(_ call: CAPPluginCall) {
+    func setConnectionToken(_ call: CAPPluginCall) {
         self.implementation.setConnectionToken(call)
     }
 
-    @objc func discoverReaders(_ call: CAPPluginCall) {
+    func discoverReaders(_ call: CAPPluginCall) {
         do {
             try self.implementation.discoverReaders(call)
         } catch {
@@ -52,67 +56,67 @@ public class StripeTerminalPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    @objc func setSimulatorConfiguration(_ call: CAPPluginCall) {
+    func setSimulatorConfiguration(_ call: CAPPluginCall) {
         self.implementation.setSimulatorConfiguration(call)
     }
 
-    @objc func cancelDiscoverReaders(_ call: CAPPluginCall) {
+    func cancelDiscoverReaders(_ call: CAPPluginCall) {
         self.implementation.cancelDiscoverReaders(call)
     }
 
-    @objc func connectReader(_ call: CAPPluginCall) {
+    func connectReader(_ call: CAPPluginCall) {
         self.implementation.connectReader(call)
     }
 
-    @objc func getConnectedReader(_ call: CAPPluginCall) {
+    func getConnectedReader(_ call: CAPPluginCall) {
         self.implementation.getConnectedReader(call)
     }
 
-    @objc func disconnectReader(_ call: CAPPluginCall) {
+    func disconnectReader(_ call: CAPPluginCall) {
         self.implementation.disconnectReader(call)
     }
 
-    @objc func collectPaymentMethod(_ call: CAPPluginCall) {
+    func collectPaymentMethod(_ call: CAPPluginCall) {
         self.implementation.collectPaymentMethod(call)
     }
 
-    @objc func cancelCollectPaymentMethod(_ call: CAPPluginCall) {
+    func cancelCollectPaymentMethod(_ call: CAPPluginCall) {
         self.implementation.cancelCollectPaymentMethod(call)
     }
 
-    @objc func confirmPaymentIntent(_ call: CAPPluginCall) {
-        self.implementation.confirmPaymentIntent(call)
+    func confirmPaymentIntent(_ call: CAPPluginCall) throws {
+        try self.implementation.confirmPaymentIntent(call)
     }
 
-    @objc func installAvailableUpdate(_ call: CAPPluginCall) {
+    func installAvailableUpdate(_ call: CAPPluginCall) {
         self.implementation.installAvailableUpdate(call)
     }
 
-    @objc func cancelInstallUpdate(_ call: CAPPluginCall) {
+    func cancelInstallUpdate(_ call: CAPPluginCall) {
         self.implementation.cancelInstallUpdate(call)
     }
 
-    @objc func setReaderDisplay(_ call: CAPPluginCall) {
-        self.implementation.setReaderDisplay(call)
+    func setReaderDisplay(_ call: CAPPluginCall) throws {
+        try self.implementation.setReaderDisplay(call)
     }
 
-    @objc func clearReaderDisplay(_ call: CAPPluginCall) {
+    func clearReaderDisplay(_ call: CAPPluginCall) {
         self.implementation.clearReaderDisplay(call)
     }
 
-    @objc func rebootReader(_ call: CAPPluginCall) {
+    func rebootReader(_ call: CAPPluginCall) {
         self.implementation.rebootReader(call)
     }
 
-    @objc func cancelReaderReconnection(_ call: CAPPluginCall) {
+    func cancelReaderReconnection(_ call: CAPPluginCall) {
         self.implementation.cancelReaderReconnection(call)
     }
     
-    @objc func setTapToPayUxConfiguration(_ call: CAPPluginCall) {
-        call.unimplemented()
+    func setTapToPayUxConfiguration(_ call: CAPPluginCall) throws {
+        throw CAPPluginError.unimplemented()
     }
 
-    @objc func isTapToPayAccountLinked(_ call: CAPPluginCall) {
-        self.implementation.isTapToPayAccountLinked(call)
+    func isTapToPayAccountLinked(_ call: CAPPluginCall) throws {
+        try self.implementation.isTapToPayAccountLinked(call)
     }
 }
