@@ -7,6 +7,7 @@ import com.getcapacitor.Bridge
 import com.getcapacitor.JSObject
 import com.getcapacitor.Logger
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginException
 import com.getcapacitor.community.stripe.identity.models.EventNotifier
 import com.getcapacitor.community.stripe.identity.models.Executor
 import com.stripe.android.identity.IdentityVerificationSheet
@@ -48,8 +49,7 @@ public class StripeIdentity(
                 IdentityVerificationSheetEvent.FailedToLoad.webEventName,
                 JSObject().put("error", errorText)
             )
-            call.reject(errorText)
-            return
+            throw PluginException(errorText)
         }
 
         this.notifyListeners(IdentityVerificationSheetEvent.Loaded.webEventName, emptyObject)
