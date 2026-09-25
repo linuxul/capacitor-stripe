@@ -6,6 +6,7 @@ import com.getcapacitor.JSObject
 import com.getcapacitor.Logger
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginException
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import com.getcapacitor.community.stripe.googlepay.GooglePayExecutor
@@ -136,22 +137,21 @@ public class StripePlugin : Plugin() {
 
     @PluginMethod
     public fun initialize(call: PluginCall) {
+        val key = call.getString("publishableKey")
+        publishableKey = key
+        if (key == null || key == "") {
+            throw PluginException("you must provide a valid key")
+        }
+
         try {
-            publishableKey = call.getString("publishableKey")
-
-            if (publishableKey == null || publishableKey == "") {
-                call.reject("you must provide a valid key")
-                return
-            }
-
             val stripeAccountId = call.getString("stripeAccount", null)
 
-            PaymentConfiguration.init(context, publishableKey!!, stripeAccountId)
+            PaymentConfiguration.init(context, key, stripeAccountId)
             Stripe.appInfo = AppInfo.create(APP_INFO_NAME)
-            call.resolve()
         } catch (e: Exception) {
-            call.reject("unable to set publishable key: " + e.localizedMessage, ex = e)
+            throw PluginException("unable to set publishable key: " + e.localizedMessage, cause = e)
         }
+        call.resolve()
     }
 
     @PluginMethod

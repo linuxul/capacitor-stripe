@@ -6,6 +6,7 @@ import androidx.core.util.Supplier
 import com.getcapacitor.Bridge
 import com.getcapacitor.JSObject
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginException
 import com.getcapacitor.community.stripe.helper.PaymentSheetHelper
 import com.getcapacitor.community.stripe.models.EventNotifier
 import com.getcapacitor.community.stripe.models.Executor
@@ -56,8 +57,7 @@ public class PaymentSheetExecutor(
                 PaymentSheetEvents.FailedToLoad.webEventName,
                 JSObject().put("error", errorText)
             )
-            call.reject(errorText)
-            return
+            throw PluginException(errorText)
         }
 
         if (customerId != null && customerEphemeralKeySecret == null) {
@@ -67,8 +67,7 @@ public class PaymentSheetExecutor(
                 PaymentSheetEvents.FailedToLoad.webEventName,
                 JSObject().put("error", errorText)
             )
-            call.reject(errorText)
-            return
+            throw PluginException(errorText)
         }
 
         var merchantDisplayName = call.getString("merchantDisplayName")

@@ -6,6 +6,7 @@ import androidx.core.util.Supplier
 import com.getcapacitor.Bridge
 import com.getcapacitor.JSObject
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginException
 import com.getcapacitor.community.stripe.models.EventNotifier
 import com.getcapacitor.community.stripe.models.Executor
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
@@ -51,8 +52,7 @@ public class GooglePayExecutor(
                 GooglePayEvents.FailedToLoad.webEventName,
                 JSObject().put("error", errorText)
             )
-            call.reject(errorText)
-            return
+            throw PluginException(errorText)
         }
 
         notifyListenersFunction.accept(GooglePayEvents.Loaded.webEventName, emptyObject)
