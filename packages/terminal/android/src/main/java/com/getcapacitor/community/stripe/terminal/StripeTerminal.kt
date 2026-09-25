@@ -14,6 +14,7 @@ import androidx.core.util.Supplier
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginException
 import com.getcapacitor.community.stripe.terminal.helper.TerminalMappers
 import com.getcapacitor.community.stripe.terminal.models.EventNotifier
 import com.getcapacitor.community.stripe.terminal.models.Executor
@@ -178,8 +179,7 @@ public class StripeTerminal(
             PackageManager.PERMISSION_GRANTED
         ) {
             Log.d(this.logTag, "android.permission.ACCESS_FINE_LOCATION permission is not granted.")
-            call.reject("android.permission.ACCESS_FINE_LOCATION permission is not granted.")
-            return
+            throw PluginException("android.permission.ACCESS_FINE_LOCATION permission is not granted.")
         }
 
         this.locationId = call.getString("locationId")
@@ -265,7 +265,7 @@ public class StripeTerminal(
         } else if (this.terminalConnectType == TerminalConnectTypes.HandOff) {
             this.connectHandOffReader(call)
         } else {
-            call.reject("type is not defined.")
+            throw PluginException("type is not defined.")
         }
     }
 
@@ -311,8 +311,7 @@ public class StripeTerminal(
         val foundReader = this.findReader(this.discoveredReadersList, serialNumber)
 
         if (serialNumber == null || foundReader == null) {
-            call.reject("The reader value is not set correctly.")
-            return
+            throw PluginException("The reader value is not set correctly.")
         }
 
         val autoReconnectOnUnexpectedDisconnect: Boolean = Objects.requireNonNullElse(
@@ -404,8 +403,7 @@ public class StripeTerminal(
         val foundReader = this.findReader(this.discoveredReadersList, serialNumber)
 
         if (serialNumber == null || foundReader == null) {
-            call.reject("The reader value is not set correctly.")
-            return
+            throw PluginException("The reader value is not set correctly.")
         }
 
         val config: ConnectionConfiguration.InternetConnectionConfiguration =
@@ -425,8 +423,7 @@ public class StripeTerminal(
         val foundReader = this.findReader(this.discoveredReadersList, serialNumber)
 
         if (serialNumber == null || foundReader == null) {
-            call.reject("The reader value is not set correctly.")
-            return
+            throw PluginException("The reader value is not set correctly.")
         }
 
         val config: ConnectionConfiguration.UsbConnectionConfiguration =
@@ -447,8 +444,7 @@ public class StripeTerminal(
         val foundReader = this.findReader(this.discoveredReadersList, serialNumber)
 
         if (serialNumber == null || foundReader == null) {
-            call.reject("The reader value is not set correctly.")
-            return
+            throw PluginException("The reader value is not set correctly.")
         }
         val autoReconnectOnUnexpectedDisconnect: Boolean = Objects.requireNonNullElse(
             call.getBoolean("autoReconnectOnUnexpectedDisconnect", false),
@@ -471,8 +467,7 @@ public class StripeTerminal(
         val foundReader = this.discoveredReadersList.firstOrNull()
 
         if (serialNumber == null || foundReader == null) {
-            call.reject("The reader value is not set correctly.")
-            return
+            throw PluginException("The reader value is not set correctly.")
         }
 
         val config: ConnectionConfiguration.AppsOnDevicesConnectionConfiguration =
@@ -530,8 +525,7 @@ public class StripeTerminal(
     public fun collectPaymentMethod(call: PluginCall) {
         val paymentIntent = call.getString("paymentIntent")
         if (paymentIntent == null) {
-            call.reject("The value of paymentIntent is not set correctly.")
-            return
+            throw PluginException("The value of paymentIntent is not set correctly.")
         }
         this.collectCall = call
         Terminal.getInstance().retrievePaymentIntent(paymentIntent, createPaymentIntentCallback)
@@ -637,8 +631,7 @@ public class StripeTerminal(
 
     public fun confirmPaymentIntent(call: PluginCall) {
         if (this.paymentIntentInstance == null) {
-            call.reject("PaymentIntent not found for confirmPaymentIntent. Use collect method first and try again.")
-            return
+            throw PluginException("PaymentIntent not found for confirmPaymentIntent. Use collect method first and try again.")
         }
 
         this.confirmPaymentIntentCall = call
@@ -673,15 +666,13 @@ public class StripeTerminal(
     public fun setReaderDisplay(call: PluginCall) {
         val currency = call.getString("currency", null)
         if (currency == null) {
-            call.reject("You must provide a currency value")
-            return
+            throw PluginException("You must provide a currency value")
         }
 
         val tax: Int = call.getInt("tax", 0)!!
         val total: Int = call.getInt("total", 0)!!
         if (total == 0) {
-            call.reject("You must provide a total value")
-            return
+            throw PluginException("You must provide a total value")
         }
 
         val lineItems = call.getArray("lineItems")
