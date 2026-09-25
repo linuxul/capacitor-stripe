@@ -1,15 +1,33 @@
 import XCTest
+import Capacitor
 @testable import StripeIdentityPlugin
 
 class StripeIdentityTests: XCTestCase {
-    func testEcho() {
-        // This is an example of a functional test case for a plugin.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testBridgedPlugin() {
+        let plugin = StripeIdentityPlugin()
 
-        let implementation = StripeIdentity()
-        //         let value = "Hello, World!"
-        //         let result = implementation.echo(value)
-        //
-        //         XCTAssertEqual(value, result)
+        XCTAssertEqual("StripeIdentityPlugin", plugin.identifier)
+        XCTAssertEqual("StripeIdentity", plugin.jsName)
+        XCTAssertEqual(["initialize", "create", "present"], plugin.pluginMethods.map { $0.name })
+        XCTAssertEqual([.promise, .promise, .promise], plugin.pluginMethods.map { $0.returnType })
+    }
+
+    func testCreateWithoutTheSessionThrows() {
+        for options: JSObject in [[:], ["verificationId": "vs_123"], ["ephemeralKeySecret": "ek_123"]] {
+            XCTAssertThrowsError(try StripeIdentityPlugin().create(unansweredCall("create", options))) { error in
+                XCTAssertEqual(
+                    (error as? CAPPluginError)?.message,
+                    "Invalid Params. this method require verificationId or ephemeralKeySecret.")
+                XCTAssertNil((error as? CAPPluginError)?.code)
+            }
+        }
+    }
+
+    private func unansweredCall(_ method: String, _ options: JSObject) -> CAPPluginCall {
+        return CAPPluginCall(callbackId: "test", methodName: method, options: options, success: { _, _ in
+            XCTFail("\(method) answers by throwing")
+        }, error: { _ in
+            XCTFail("\(method) answers by throwing")
+        })
     }
 }

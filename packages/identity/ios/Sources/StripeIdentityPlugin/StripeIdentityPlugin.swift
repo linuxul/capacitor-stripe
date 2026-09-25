@@ -13,9 +13,9 @@ public class StripeIdentityPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StripeIdentityPlugin"
     public let jsName = "StripeIdentity"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: .promise),
-        CAPPluginMethod(name: "create", returnType: .promise),
-        CAPPluginMethod(name: "present", returnType: .promise)
+        .promise("initialize", StripeIdentityPlugin.initialize),
+        .promise("create", StripeIdentityPlugin.create),
+        .promise("present", StripeIdentityPlugin.present)
     ]
     private let implementation = StripeIdentity()
 
@@ -25,15 +25,18 @@ public class StripeIdentityPlugin: CAPPlugin, CAPBridgedPlugin {
         STPAPIClient.shared.appInfo = STPAppInfo(name: "@capacitor-community/stripe-identity", partnerId: nil, version: nil, url: nil)
     }
 
-    @objc func initialize(_ call: CAPPluginCall) {
+    func initialize(_ call: CAPPluginCall) {
         self.implementation.initialize(call)
     }
 
-    @objc func create(_ call: CAPPluginCall) {
-        self.implementation.create(call)
+    func create(_ call: CAPPluginCall) throws {
+        try self.implementation.create(call)
     }
 
-    @objc func present(_ call: CAPPluginCall) {
+    // The verification sheet answers in its completion handler, which Stripe calls after the sheet is dismissed.
+    // present stays a synchronous method that presents the sheet in DispatchQueue.main.async and resolves from that
+    // handler.
+    func present(_ call: CAPPluginCall) {
         self.implementation.present(call)
     }
 

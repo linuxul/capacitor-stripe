@@ -11,15 +11,14 @@ import UIKit
         call.resolve()
     }
 
-    func create(_ call: CAPPluginCall) {
+    func create(_ call: CAPPluginCall) throws {
         let verificationId = call.getString("verificationId") ?? nil
         let ephemeralKeySecret = call.getString("ephemeralKeySecret") ?? nil
 
         if verificationId == nil || ephemeralKeySecret == nil {
             let errorText = "Invalid Params. this method require verificationId or ephemeralKeySecret."
             self.plugin?.notifyListeners(IdentityVerificationSheetEvents.FailedToLoad.rawValue, data: ["message": errorText])
-            call.reject(errorText)
-            return
+            throw CAPPluginError(errorText)
         }
 
         if let iconFileName = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any],
@@ -42,7 +41,7 @@ import UIKit
         } else {
             let errorText = "CFBundleIcons or CFBundlePrimaryIcon or CFBundleIconFiles is not found. You should check ios image assets"
             self.plugin?.notifyListeners(IdentityVerificationSheetEvents.FailedToLoad.rawValue, data: ["message": errorText])
-            call.reject(errorText)
+            throw CAPPluginError(errorText)
         }
     }
 
